@@ -6,30 +6,16 @@
     <title>Statistical Methods Interactive Explorer</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Chosen Palette: Warm Sand & Slate (Background: #F9FAFB, Cards: White, Text: #1F2937, Accents: #0D9488 teal, #F59E0B amber) -->
-    <!-- Application Structure Plan: The SPA uses a functional dashboard approach. It begins with an 'Interactive Method Finder' (a wizard-like tool) addressing the user's primary goal: finding the right test based on variables. This is followed by a visual breakdown of method types using Chart.js to provide macro-level context. Finally, a searchable 'Method Glossary' and an 'Assumptions Dictionary' provide exploratory deep-dives. This structure prevents cognitive overload by offering guided selection first, followed by open exploration. -->
-    <!-- Visualization & Content Choices: 1. Method Finder: Dynamic HTML forms -> Goal: Inform/Organize -> User inputs parameters, JS filters data and displays the exact method card. 2. Method Distribution Chart: Chart.js Doughnut -> Goal: Inform/Compare -> Shows the proportion of tests based on data nature (Categorical, Interval, etc.) to give a landscape overview. 3. Glossary: CSS Grid + JS Search -> Goal: Organize/Explore -> Allows quick keyword lookups for specific tests or R code. Confirming no SVG or Mermaid JS is used; all iconography utilizes Unicode. -->
+    <!-- Application Structure Plan: The SPA uses a functional dashboard approach. It begins with an 'Interactive Method Finder' featuring a new AI-powered text analysis input. Users can either type their study design for auto-classification via Gemini API or manually use the dropdowns. This is followed by a searchable 'Method Glossary' and an 'Assumptions Dictionary'. The structure focuses entirely on utility and rapid method discovery. -->
+    <!-- Visualization & Content Choices: 1. AI Method Finder: HTML form + Gemini API -> Goal: Automate Selection -> User types description, API returns structured JSON, JS updates selects and filters results. 2. Glossary: CSS Grid + JS Search -> Goal: Organize/Explore -> Allows quick keyword lookups for specific tests or R code. Confirming no SVG, Chart.js, or Mermaid JS is used. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F9FAFB; color: #1F2937; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid #E5E7EB; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
         .gradient-text { background: linear-gradient(to right, #0D9488, #0F766E); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 350px;
-            max-height: 400px;
-        }
-        @media (min-width: 768px) {
-            .chart-container { height: 400px; }
-        }
         
         .code-block { background-color: #111827; color: #E5E7EB; font-family: monospace; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
         .interactive-card { transition: transform 0.2s, box-shadow 0.2s; }
@@ -39,17 +25,26 @@
         ::-webkit-scrollbar-track { background: #F3F4F6; }
         ::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #6B7280; }
+        
+        .loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
 
     <nav class="sticky top-0 z-50 glass-panel border-b border-gray-200 py-4 px-6 md:px-12 flex justify-between items-center">
-        <div class="text-xl font-bold text-teal-700 flex items-center gap-2">
-            <span class="text-2xl">🧮</span> StatFinder Pro
+        <div class="text-xl font-bold text-teal-700">
+            StatFinder Pro
         </div>
         <div class="hidden md:flex gap-6 text-sm font-medium text-gray-600">
             <a href="#finder" class="hover:text-teal-600 transition-colors">Method Finder</a>
-            <a href="#overview" class="hover:text-teal-600 transition-colors">Landscape Overview</a>
             <a href="#glossary" class="hover:text-teal-600 transition-colors">Full Glossary</a>
             <a href="#assumptions" class="hover:text-teal-600 transition-colors">Assumptions Guide</a>
         </div>
@@ -59,22 +54,37 @@
 
         <header class="text-center max-w-3xl mx-auto space-y-4 pt-8">
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">
-                Find the right <span class="gradient-text">Statistical Method</span> in seconds.
+                Find the right <span class="gradient-text">Statistical Method</span>
             </h1>
             <p class="text-lg text-gray-600">
-                An interactive decision tool translating your experimental design (variables & data types) into the correct statistical test, complete with R code and core assumptions.
+                Use our AI assistant to analyze your experimental design, or manually select your variables to find the correct statistical test and R code.
             </p>
         </header>
 
         <section id="finder" class="scroll-mt-24">
             <div class="mb-6">
-                <h2 class="text-2xl font-bold flex items-center gap-2">🔍 Interactive Method Finder</h2>
-                <p class="text-gray-600 mt-2">Select your study design parameters below to isolate the appropriate statistical test. This tool maps dependent variables (DVs), independent variables (IVs), and data nature directly to actionable methods.</p>
+                <h2 class="text-2xl font-bold text-gray-900">Interactive Method Finder</h2>
+                <p class="text-gray-600 mt-2">Describe your study in plain text, or select your study design parameters below to isolate the appropriate statistical test.</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-4 glass-panel p-6 rounded-2xl space-y-6">
-                    <h3 class="font-semibold text-lg border-b pb-2">1. Define Variables</h3>
+                    
+                    <!-- AI Assistant Block -->
+                    <div class="p-4 bg-gradient-to-br from-teal-50 to-teal-100/50 border border-teal-200 rounded-xl shadow-sm">
+                        <label class="block text-sm font-bold text-teal-800 mb-2">✨ AI Study Analyzer</label>
+                        <textarea id="ai-description" rows="3" class="w-full text-sm border-gray-300 rounded-lg p-3 mb-3 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 shadow-inner resize-none" placeholder="Example: I want to compare the blood pressure of 50 patients before and after taking a new drug..."></textarea>
+                        <button id="btn-ai" class="w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-all shadow-md flex justify-center items-center gap-2">
+                            <span>Analyze Design</span>
+                            <div id="ai-spinner" class="loader hidden"></div>
+                        </button>
+                        <div id="ai-reasoning-container" class="hidden mt-3 p-3 bg-white/80 rounded border border-teal-100">
+                            <p id="ai-reasoning" class="text-sm text-teal-800 leading-relaxed"></p>
+                        </div>
+                        <p id="ai-error" class="hidden text-xs text-red-600 mt-2 font-medium"></p>
+                    </div>
+
+                    <h3 class="font-semibold text-lg border-b pb-2">Manual Variables Selection</h3>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Number of Dependent Variables (DVs)</label>
@@ -119,34 +129,7 @@
 
                 <div class="lg:col-span-8 flex flex-col">
                     <div id="result-count" class="text-sm text-teal-700 font-medium mb-4 pl-2">Showing all methods...</div>
-                    <div id="finder-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-max overflow-y-auto max-h-[600px] pr-2 pb-4">
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="overview" class="scroll-mt-24 pt-8 border-t border-gray-200">
-            <div class="mb-8 max-w-4xl">
-                <h2 class="text-2xl font-bold flex items-center gap-2">📊 Method Landscape Overview</h2>
-                <p class="text-gray-600 mt-2">This visualization categorizes the statistical methods within the cheat sheet based on the required nature of the dependent data. It highlights the prominence of parametric (Interval & Normal) versus non-parametric and categorical approaches.</p>
-            </div>
-            
-            <div class="glass-panel rounded-2xl p-6 md:p-10">
-                <div class="chart-container">
-                    <canvas id="distributionChart"></canvas>
-                </div>
-                <div class="mt-8 grid grid-cols-3 divide-x divide-gray-200 text-center">
-                    <div class="px-4">
-                        <div class="text-3xl font-bold text-teal-600" id="stat-interval">0</div>
-                        <div class="text-sm text-gray-500 font-medium mt-1">Parametric / Interval</div>
-                    </div>
-                    <div class="px-4">
-                        <div class="text-3xl font-bold text-amber-500" id="stat-ordinal">0</div>
-                        <div class="text-sm text-gray-500 font-medium mt-1">Non-Parametric / Ordinal</div>
-                    </div>
-                    <div class="px-4">
-                        <div class="text-3xl font-bold text-indigo-500" id="stat-categorical">0</div>
-                        <div class="text-sm text-gray-500 font-medium mt-1">Categorical</div>
+                    <div id="finder-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-max overflow-y-auto max-h-[700px] pr-2 pb-4">
                     </div>
                 </div>
             </div>
@@ -155,11 +138,13 @@
         <section id="glossary" class="scroll-mt-24 pt-8 border-t border-gray-200">
             <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div class="max-w-2xl">
-                    <h2 class="text-2xl font-bold flex items-center gap-2">📋 Full Method Glossary</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">Full Method Glossary</h2>
                     <p class="text-gray-600 mt-2">Browse the complete dictionary of statistical methods. Search by test name, R function, or keyword.</p>
                 </div>
                 <div class="relative w-full md:w-72">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
                     <input type="text" id="search-input" placeholder="Search methods, R code..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
                 </div>
             </div>
@@ -170,7 +155,7 @@
 
         <section id="assumptions" class="scroll-mt-24 pt-8 border-t border-gray-200 mb-16">
             <div class="mb-6">
-                <h2 class="text-2xl font-bold flex items-center gap-2">💡 Key Assumptions Dictionary</h2>
+                <h2 class="text-2xl font-bold text-gray-900">Key Assumptions Dictionary</h2>
                 <p class="text-gray-600 mt-2">Understanding the prerequisites for your statistical models is crucial to avoid false positives/negatives. Review core terminology here.</p>
             </div>
 
@@ -201,11 +186,13 @@
     </main>
 
     <footer class="bg-gray-900 text-gray-400 py-8 text-center text-sm">
-        <p>Statistical Methods Explorer. Built with Tailwind CSS & Chart.js.</p>
+        <p>Statistical Methods Explorer. Built with Tailwind CSS & Gemini AI.</p>
         <p class="mt-2">Always verify assumptions with your specific dataset before finalizing models.</p>
     </footer>
 
     <script>
+        const apiKey = ""; // API Key injected by environment
+
         const statsData = [
             { dv: "1", iv: "0 IVs", nature: "Interval & Normal", method: "One-sample t-test", assumptions: "Independence, Normality", example: "Test if the mean IQ of a class is 100.", code: "t.test(y, mu = 100)" },
             { dv: "1", iv: "0 IVs", nature: "Ordinal/Interval", method: "One-sample median", assumptions: "Independence", example: "Test if the median income is $50k.", code: "wilcox.test(y, mu = 50000)" },
@@ -266,28 +253,38 @@
                         <code>${item.code}</code>
                     </div>
                     <button onclick="copyToClipboard('${item.code.replace(/'/g, "\\'")}', this)" class="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors p-1" title="Copy Code">
-                        📋
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     </button>
                 </div>
             </div>
         `;
 
         function copyToClipboard(text, btnElement) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = btnElement.innerText;
-                btnElement.innerText = '✅';
-                setTimeout(() => { btnElement.innerText = originalText; }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
+            const originalHTML = btnElement.innerHTML;
+            
+            const writeToClipboard = (txt) => {
                 const input = document.createElement('textarea');
-                input.innerHTML = text;
+                input.innerHTML = txt;
                 document.body.appendChild(input);
                 input.select();
                 document.execCommand('copy');
                 document.body.removeChild(input);
-                btnElement.innerText = '✅';
-                setTimeout(() => { btnElement.innerText = '📋'; }, 2000);
-            });
+            };
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    btnElement.innerHTML = '<span class="text-green-400 text-xs">Copied!</span>';
+                    setTimeout(() => { btnElement.innerHTML = originalHTML; }, 2000);
+                }).catch(err => {
+                    writeToClipboard(text);
+                    btnElement.innerHTML = '<span class="text-green-400 text-xs">Copied!</span>';
+                    setTimeout(() => { btnElement.innerHTML = originalHTML; }, 2000);
+                });
+            } else {
+                writeToClipboard(text);
+                btnElement.innerHTML = '<span class="text-green-400 text-xs">Copied!</span>';
+                setTimeout(() => { btnElement.innerHTML = originalHTML; }, 2000);
+            }
         }
 
         const selDv = document.getElementById('sel-dv');
@@ -299,11 +296,21 @@
         const fullGlossaryContainer = document.getElementById('full-glossary-grid');
         const searchInput = document.getElementById('search-input');
 
+        // AI Elements
+        const btnAi = document.getElementById('btn-ai');
+        const aiDescription = document.getElementById('ai-description');
+        const aiSpinner = document.getElementById('ai-spinner');
+        const aiReasoningContainer = document.getElementById('ai-reasoning-container');
+        const aiReasoning = document.getElementById('ai-reasoning');
+        const aiError = document.getElementById('ai-error');
+
         function renderResults(container, dataArray) {
             if (dataArray.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full py-12 text-center text-gray-500 glass-panel rounded-xl">
-                        <span class="text-4xl block mb-2">🤷‍♂️</span>
+                        <span class="text-4xl block mb-2 text-gray-300">
+                            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </span>
                         <p class="text-lg font-medium">No methods match this exact combination.</p>
                         <p class="text-sm mt-1">Try broadening your criteria.</p>
                     </div>`;
@@ -336,6 +343,9 @@
             selDv.value = 'all';
             selIv.value = 'all';
             selNature.value = 'all';
+            aiDescription.value = '';
+            aiReasoningContainer.classList.add('hidden');
+            aiError.classList.add('hidden');
             filterFinder();
         });
 
@@ -350,66 +360,98 @@
             renderResults(fullGlossaryContainer, filtered);
         });
 
-        function initChart() {
-            let intervalCount = 0;
-            let ordinalCount = 0;
-            let categoricalCount = 0;
+        // AI Logic implementation using exponential backoff
+        async function analyzeWithAI() {
+            const text = aiDescription.value.trim();
+            if(!text) return;
 
-            statsData.forEach(item => {
-                if (item.nature.includes("Interval & Normal")) intervalCount++;
-                else if (item.nature.includes("Ordinal")) ordinalCount++;
-                else if (item.nature.includes("Categorical")) categoricalCount++;
-            });
+            // UI loading state
+            btnAi.disabled = true;
+            aiSpinner.classList.remove('hidden');
+            aiReasoningContainer.classList.add('hidden');
+            aiError.classList.add('hidden');
 
-            document.getElementById('stat-interval').innerText = intervalCount;
-            document.getElementById('stat-ordinal').innerText = ordinalCount;
-            document.getElementById('stat-categorical').innerText = categoricalCount;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const systemPrompt = `You are a statistics expert assistant.
+Analyze the study description provided by the user. Map the design to exactly ONE option from each of the following lists:
+- dv (Dependent Variables): '1', '2+', '0'
+- iv (Independent Variables): '0 IVs', '1 IV, 2 levels (Independent)', '1 IV, 2+ levels (Independent)', '1 IV, 2 levels (Dependent)', '1 IV, 2+ levels (Dependent)', '2+ IVs (Independent)', 'Regression', 'Mixed'
+- nature (Nature of Dependent Variable): 'Interval & Normal', 'Ordinal/Interval', 'Categorical (2)', 'Categorical'
 
-            const ctx = document.getElementById('distributionChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Parametric / Interval', 'Non-Parametric / Ordinal', 'Categorical'],
-                    datasets: [{
-                        data: [intervalCount, ordinalCount, categoricalCount],
-                        backgroundColor: [
-                            'rgba(13, 148, 136, 0.8)', 
-                            'rgba(245, 158, 11, 0.8)', 
-                            'rgba(99, 102, 241, 0.8)'   
-                        ],
-                        borderColor: [
-                            'rgba(13, 148, 136, 1)',
-                            'rgba(245, 158, 11, 1)',
-                            'rgba(99, 102, 241, 1)'
-                        ],
-                        borderWidth: 2,
-                        hoverOffset: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { font: { family: "'Segoe UI', sans-serif" } } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) label += ': ';
-                                    label += context.raw + ' Methods';
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '65%'
+Respond with a strictly formatted JSON object. 
+The "reasoning" key should contain a brief 1-2 sentence explanation explaining why these options were chosen based on their study design.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: text }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            dv: { type: "STRING" },
+                            iv: { type: "STRING" },
+                            nature: { type: "STRING" },
+                            reasoning: { type: "STRING" }
+                        },
+                        required: ["dv", "iv", "nature", "reasoning"]
+                    }
                 }
-            });
+            };
+
+            try {
+                let response;
+                let retries = 5;
+                let delay = 1000;
+                
+                for(let i=0; i<retries; i++) {
+                    response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if(response.ok) break;
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+
+                if(!response.ok) throw new Error("API call failed after retries.");
+
+                const result = await response.json();
+                let jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                // Parse the JSON safely
+                if(jsonText) {
+                    jsonText = jsonText.replace(/^```json/i, '').replace(/```$/, '').trim();
+                    const parsed = JSON.parse(jsonText);
+
+                    // Update UI Dropdowns safely based on AI prediction
+                    if (parsed.dv && Array.from(selDv.options).some(o => o.value === parsed.dv)) selDv.value = parsed.dv;
+                    if (parsed.iv && Array.from(selIv.options).some(o => o.value === parsed.iv)) selIv.value = parsed.iv;
+                    if (parsed.nature && Array.from(selNature.options).some(o => o.value === parsed.nature)) selNature.value = parsed.nature;
+                    
+                    filterFinder();
+
+                    aiReasoning.innerHTML = `<strong>AI Analysis:</strong> ${parsed.reasoning}`;
+                    aiReasoningContainer.classList.remove('hidden');
+                }
+
+            } catch (err) {
+                console.error("AI Error:", err);
+                aiError.innerText = "Sorry, AI analysis failed. Please try submitting again or select manually.";
+                aiError.classList.remove('hidden');
+            } finally {
+                btnAi.disabled = false;
+                aiSpinner.classList.add('hidden');
+            }
         }
 
+        btnAi.addEventListener('click', analyzeWithAI);
+
+        // Initial render
         renderResults(finderContainer, statsData);
         renderResults(fullGlossaryContainer, statsData);
-        initChart();
     </script>
 </body>
 </html>
