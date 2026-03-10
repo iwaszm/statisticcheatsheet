@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistical Methods Interactive Explorer</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Warm Sand & Slate (Background: #F9FAFB, Cards: White, Text: #1F2937, Accents: #0D9488 teal, #F59E0B amber) -->
+    <!-- Application Structure Plan: The SPA uses a functional dashboard approach. It begins with an 'Interactive Method Finder' (a wizard-like tool) addressing the user's primary goal: finding the right test based on variables. This is followed by a visual breakdown of method types using Chart.js to provide macro-level context. Finally, a searchable 'Method Glossary' and an 'Assumptions Dictionary' provide exploratory deep-dives. This structure prevents cognitive overload by offering guided selection first, followed by open exploration. -->
+    <!-- Visualization & Content Choices: 1. Method Finder: Dynamic HTML forms -> Goal: Inform/Organize -> User inputs parameters, JS filters data and displays the exact method card. 2. Method Distribution Chart: Chart.js Doughnut -> Goal: Inform/Compare -> Shows the proportion of tests based on data nature (Categorical, Interval, etc.) to give a landscape overview. 3. Glossary: CSS Grid + JS Search -> Goal: Organize/Explore -> Allows quick keyword lookups for specific tests or R code. Confirming no SVG or Mermaid JS is used; all iconography utilizes Unicode. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F9FAFB; color: #1F2937; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid #E5E7EB; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .gradient-text { background: linear-gradient(to right, #0D9488, #0F766E); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+        
+        .code-block { background-color: #111827; color: #E5E7EB; font-family: monospace; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+        .interactive-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .interactive-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #0D9488; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #F3F4F6; }
+        ::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6B7280; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <nav class="sticky top-0 z-50 glass-panel border-b border-gray-200 py-4 px-6 md:px-12 flex justify-between items-center">
+        <div class="text-xl font-bold text-teal-700 flex items-center gap-2">
+            <span class="text-2xl">🧮</span> StatFinder Pro
+        </div>
+        <div class="hidden md:flex gap-6 text-sm font-medium text-gray-600">
+            <a href="#finder" class="hover:text-teal-600 transition-colors">Method Finder</a>
+            <a href="#overview" class="hover:text-teal-600 transition-colors">Landscape Overview</a>
+            <a href="#glossary" class="hover:text-teal-600 transition-colors">Full Glossary</a>
+            <a href="#assumptions" class="hover:text-teal-600 transition-colors">Assumptions Guide</a>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+
+        <header class="text-center max-w-3xl mx-auto space-y-4 pt-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">
+                Find the right <span class="gradient-text">Statistical Method</span> in seconds.
+            </h1>
+            <p class="text-lg text-gray-600">
+                An interactive decision tool translating your experimental design (variables & data types) into the correct statistical test, complete with R code and core assumptions.
+            </p>
+        </header>
+
+        <section id="finder" class="scroll-mt-24">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold flex items-center gap-2">🔍 Interactive Method Finder</h2>
+                <p class="text-gray-600 mt-2">Select your study design parameters below to isolate the appropriate statistical test. This tool maps dependent variables (DVs), independent variables (IVs), and data nature directly to actionable methods.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 glass-panel p-6 rounded-2xl space-y-6">
+                    <h3 class="font-semibold text-lg border-b pb-2">1. Define Variables</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Number of Dependent Variables (DVs)</label>
+                        <select id="sel-dv" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white">
+                            <option value="all">Any / Don't Know</option>
+                            <option value="1">1 Dependent Variable</option>
+                            <option value="2+">2+ Dependent Variables</option>
+                            <option value="0">0 Dependent Variables (Dimension Reduction)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Independent Variables (Design)</label>
+                        <select id="sel-iv" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white">
+                            <option value="all">Any / Don't Know</option>
+                            <option value="0 IVs">0 IVs (1 Population)</option>
+                            <option value="1 IV, 2 levels (Independent)">1 IV, 2 levels (Independent Groups)</option>
+                            <option value="1 IV, 2+ levels (Independent)">1 IV, 2+ levels (Independent Groups)</option>
+                            <option value="1 IV, 2 levels (Dependent)">1 IV, 2 levels (Dependent/Matched)</option>
+                            <option value="1 IV, 2+ levels (Dependent)">1 IV, 2+ levels (Dependent/Repeated)</option>
+                            <option value="2+ IVs (Independent)">2+ IVs (Independent groups)</option>
+                            <option value="Regression">1+ Interval/Categorical IVs (Regression)</option>
+                            <option value="Mixed">Fixed + Random Effects (Nested/Clustered)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nature of Dependent Variable</label>
+                        <select id="sel-nature" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white">
+                            <option value="all">Any / Don't Know</option>
+                            <option value="Interval & Normal">Interval & Normal (Continuous)</option>
+                            <option value="Ordinal/Interval">Ordinal or Non-Normal Interval</option>
+                            <option value="Categorical (2)">Categorical (Binary / 2 Categories)</option>
+                            <option value="Categorical">Categorical (General / 3+ Categories)</option>
+                        </select>
+                    </div>
+
+                    <button id="btn-reset" class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+                        Reset Filters
+                    </button>
+                </div>
+
+                <div class="lg:col-span-8 flex flex-col">
+                    <div id="result-count" class="text-sm text-teal-700 font-medium mb-4 pl-2">Showing all methods...</div>
+                    <div id="finder-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-max overflow-y-auto max-h-[600px] pr-2 pb-4">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview" class="scroll-mt-24 pt-8 border-t border-gray-200">
+            <div class="mb-8 max-w-4xl">
+                <h2 class="text-2xl font-bold flex items-center gap-2">📊 Method Landscape Overview</h2>
+                <p class="text-gray-600 mt-2">This visualization categorizes the statistical methods within the cheat sheet based on the required nature of the dependent data. It highlights the prominence of parametric (Interval & Normal) versus non-parametric and categorical approaches.</p>
+            </div>
+            
+            <div class="glass-panel rounded-2xl p-6 md:p-10">
+                <div class="chart-container">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+                <div class="mt-8 grid grid-cols-3 divide-x divide-gray-200 text-center">
+                    <div class="px-4">
+                        <div class="text-3xl font-bold text-teal-600" id="stat-interval">0</div>
+                        <div class="text-sm text-gray-500 font-medium mt-1">Parametric / Interval</div>
+                    </div>
+                    <div class="px-4">
+                        <div class="text-3xl font-bold text-amber-500" id="stat-ordinal">0</div>
+                        <div class="text-sm text-gray-500 font-medium mt-1">Non-Parametric / Ordinal</div>
+                    </div>
+                    <div class="px-4">
+                        <div class="text-3xl font-bold text-indigo-500" id="stat-categorical">0</div>
+                        <div class="text-sm text-gray-500 font-medium mt-1">Categorical</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="glossary" class="scroll-mt-24 pt-8 border-t border-gray-200">
+            <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="max-w-2xl">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">📋 Full Method Glossary</h2>
+                    <p class="text-gray-600 mt-2">Browse the complete dictionary of statistical methods. Search by test name, R function, or keyword.</p>
+                </div>
+                <div class="relative w-full md:w-72">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+                    <input type="text" id="search-input" placeholder="Search methods, R code..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                </div>
+            </div>
+
+            <div id="full-glossary-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+        </section>
+
+        <section id="assumptions" class="scroll-mt-24 pt-8 border-t border-gray-200 mb-16">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold flex items-center gap-2">💡 Key Assumptions Dictionary</h2>
+                <p class="text-gray-600 mt-2">Understanding the prerequisites for your statistical models is crucial to avoid false positives/negatives. Review core terminology here.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-teal-500">
+                    <h4 class="font-bold text-lg text-gray-900 mb-1">Independence (独立性)</h4>
+                    <p class="text-gray-600 text-sm">Data points do not influence each other. A person's score does not affect another's. Violations here usually require Mixed Models (LMM) or Repeated Measures.</p>
+                </div>
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-teal-500">
+                    <h4 class="font-bold text-lg text-gray-900 mb-1">Normality of residuals (残差正态性)</h4>
+                    <p class="text-gray-600 text-sm">The difference between observed and predicted values should be normally distributed. Often checked with Q-Q plots or Shapiro-Wilk test.</p>
+                </div>
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-amber-500">
+                    <h4 class="font-bold text-lg text-gray-900 mb-1">Homogeneity of variance (方差齐性)</h4>
+                    <p class="text-gray-600 text-sm">Also called homoscedasticity. The variance within each group (or along the regression line) should be roughly equal. <em>Note: Welch's t-test bypasses this.</em></p>
+                </div>
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-amber-500">
+                    <h4 class="font-bold text-lg text-gray-900 mb-1">Sphericity (球形假设)</h4>
+                    <p class="text-gray-600 text-sm">Only for repeated measures (rmANOVA). The variances of the differences between all possible pairs of within-subject conditions are equal. <em>Mixed Models (LMM) bypasses this.</em></p>
+                </div>
+                <div class="glass-panel p-5 rounded-xl border-l-4 border-indigo-500 md:col-span-2">
+                    <h4 class="font-bold text-lg text-gray-900 mb-1">Multicollinearity (多重共线性)</h4>
+                    <p class="text-gray-600 text-sm">In regression, predictors (IVs) should not be too highly correlated with each other, as it inflates variance and makes coefficient estimates unstable. Checked via VIF (Variance Inflation Factor).</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-8 text-center text-sm">
+        <p>Statistical Methods Explorer. Built with Tailwind CSS & Chart.js.</p>
+        <p class="mt-2">Always verify assumptions with your specific dataset before finalizing models.</p>
+    </footer>
+
+    <script>
+        const statsData = [
+            { dv: "1", iv: "0 IVs", nature: "Interval & Normal", method: "One-sample t-test", assumptions: "Independence, Normality", example: "Test if the mean IQ of a class is 100.", code: "t.test(y, mu = 100)" },
+            { dv: "1", iv: "0 IVs", nature: "Ordinal/Interval", method: "One-sample median", assumptions: "Independence", example: "Test if the median income is $50k.", code: "wilcox.test(y, mu = 50000)" },
+            { dv: "1", iv: "0 IVs", nature: "Categorical (2)", method: "Binomial test", assumptions: "Independence, Dichotomous", example: "Test if a coin is fair.", code: "binom.test(x, n, p = 0.5)" },
+            { dv: "1", iv: "0 IVs", nature: "Categorical", method: "Chi-square goodness-of-fit", assumptions: "Independence, Expected count > 5", example: "Test if M&Ms colors are equally distributed.", code: "chisq.test(table(x))" },
+            
+            { dv: "1", iv: "1 IV, 2 levels (Independent)", nature: "Interval & Normal", method: "Welch's 2-Sample t-test", assumptions: "Independence, Normality. (NO equal variance needed)", example: "Compare mean salaries of men vs. women.", code: "t.test(y ~ x, var.equal = FALSE)" },
+            { dv: "1", iv: "1 IV, 2 levels (Independent)", nature: "Interval & Normal", method: "Student's t-test", assumptions: "Independence, Normality, Homogeneity of variance", example: "Same as above, strictly assuming equal variances.", code: "t.test(y ~ x, var.equal = TRUE)" },
+            { dv: "1", iv: "1 IV, 2 levels (Independent)", nature: "Ordinal/Interval", method: "Wilcoxon-Mann Whitney", assumptions: "Independence, Similar distribution shape", example: "Compare pain rankings (Drug A vs B).", code: "wilcox.test(y ~ x)" },
+            { dv: "1", iv: "1 IV, 2 levels (Independent)", nature: "Categorical", method: "Chi-square / Fisher's Exact", assumptions: "Independence, Expected count > 5", example: "Is gender associated with exam pass rate?", code: "chisq.test(table(x, y))" },
+            
+            { dv: "1", iv: "1 IV, 2+ levels (Independent)", nature: "Interval & Normal", method: "One-way ANOVA", assumptions: "Independence, Normality of residuals, Homogeneity", example: "Compare weight loss across 3 different diets.", code: "summary(aov(y ~ x, data = df))" },
+            { dv: "1", iv: "1 IV, 2+ levels (Independent)", nature: "Ordinal/Interval", method: "Kruskal Wallis", assumptions: "Independence, Similar distribution shape", example: "Compare satisfaction ratings across 3 stores.", code: "kruskal.test(y ~ x)" },
+            
+            { dv: "1", iv: "1 IV, 2 levels (Dependent)", nature: "Interval & Normal", method: "Paired t-test", assumptions: "Pairs are independent, Diffs normally distributed", example: "Compare blood pressure BEFORE and AFTER meds.", code: "t.test(y1, y2, paired = TRUE)" },
+            { dv: "1", iv: "1 IV, 2 levels (Dependent)", nature: "Ordinal/Interval", method: "Wilcoxon signed ranks", assumptions: "Pairs are independent, Symmetric diffs", example: "Pain scores (1-10) before and after therapy.", code: "wilcox.test(y1, y2, paired=T)" },
+            { dv: "1", iv: "1 IV, 2 levels (Dependent)", nature: "Categorical", method: "McNemar test", assumptions: "Matched pairs, Binary outcome", example: "Proportion of smokers before and after an ad.", code: "mcnemar.test(table(x, y))" },
+            
+            { dv: "1", iv: "1 IV, 2+ levels (Dependent)", nature: "Interval & Normal", method: "Repeated Measures ANOVA", assumptions: "Normality, Sphericity, NO missing data allowed", example: "Math scores of SAME students at Week 1, 2, 3.", code: "aov(y ~ x + Error(subject/x))" },
+            { dv: "1", iv: "1 IV, 2+ levels (Dependent)", nature: "Interval & Normal", method: "Linear Mixed Model (LMM)", assumptions: "Normality of residuals, Handles missing data", example: "Same design as rmANOVA, better for missing data.", code: "lmer(y ~ x + (1|subject))" },
+            { dv: "1", iv: "1 IV, 2+ levels (Dependent)", nature: "Ordinal/Interval", method: "Friedman test", assumptions: "Matched groups", example: "Same judges rating 3 coffee flavors.", code: "friedman.test(y ~ x | subject)" },
+            
+            { dv: "1", iv: "2+ IVs (Independent)", nature: "Interval & Normal", method: "Factorial ANOVA", assumptions: "Independence, Normality, Homogeneity", example: "Effect of Diet AND Gender on weight loss.", code: "summary(aov(y ~ x1 * x2))" },
+            
+            { dv: "1", iv: "Regression", nature: "Interval & Normal", method: "Multiple Regression", assumptions: "Linearity, Independence, Normality, Homoscedasticity", example: "Predict house price based on size and age.", code: "lm(y ~ x1 + x2, data = df)" },
+            { dv: "1", iv: "Regression", nature: "Categorical (2)", method: "Multiple Logistic Regression", assumptions: "Independence, Linearity in log odds", example: "Predict loan default (Yes/No) based on income.", code: "glm(y ~ x1+x2, family=binomial)" },
+            { dv: "1", iv: "Regression", nature: "Categorical", method: "Discriminant Analysis", assumptions: "Multivariate normality, Equal covariance", example: "Predict career path based on tests.", code: "MASS::lda(y ~ x1 + x2)" },
+            
+            { dv: "1", iv: "Mixed", nature: "Interval & Normal", method: "Linear Mixed Model (LMM)", assumptions: "Linearity, Normality, Homoscedasticity", example: "Predict scores from age, accounting for schools.", code: "lme4::lmer(y ~ x1 + (1|school))" },
+            
+            { dv: "2+", iv: "1 IV, 2+ levels (Independent)", nature: "Interval & Normal", method: "One-way MANOVA", assumptions: "Multivariate normality, Homogeneity of covariance", example: "Do teaching methods affect Math AND Reading?", code: "manova(cbind(y1,y2) ~ x)" },
+            
+            { dv: "0", iv: "0 IVs", nature: "Interval & Normal", method: "Factor Analysis / PCA", assumptions: "Sufficient correlation, Multivariate normality", example: "Group 20 questions into 4 psychological factors.", code: "factanal(df, factors = 4)" }
+        ];
+
+        const getBadgeColor = (nature) => {
+            if (nature.includes("Interval & Normal")) return "bg-teal-100 text-teal-800 border-teal-200";
+            if (nature.includes("Ordinal")) return "bg-amber-100 text-amber-800 border-amber-200";
+            if (nature.includes("Categorical")) return "bg-indigo-100 text-indigo-800 border-indigo-200";
+            return "bg-gray-100 text-gray-800 border-gray-200";
+        };
+
+        const generateCardHTML = (item) => `
+            <div class="glass-panel p-5 rounded-xl border interactive-card flex flex-col h-full">
+                <div class="flex justify-between items-start mb-3">
+                    <h4 class="font-bold text-lg text-gray-900 leading-tight">${item.method}</h4>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBadgeColor(item.nature)} whitespace-nowrap ml-2">
+                        ${item.nature.split(' ')[0]}
+                    </span>
+                </div>
+                <div class="space-y-3 flex-grow text-sm">
+                    <p><strong class="text-gray-700">Design:</strong> ${item.iv}</p>
+                    <p><strong class="text-gray-700">Assumptions:</strong> <span class="text-gray-600">${item.assumptions}</span></p>
+                    <p class="text-gray-500 italic border-l-2 border-gray-300 pl-2">"${item.example}"</p>
+                </div>
+                <div class="mt-4 relative group">
+                    <div class="code-block text-xs">
+                        <code>${item.code}</code>
+                    </div>
+                    <button onclick="copyToClipboard('${item.code.replace(/'/g, "\\'")}', this)" class="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors p-1" title="Copy Code">
+                        📋
+                    </button>
+                </div>
+            </div>
+        `;
+
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = '✅';
+                setTimeout(() => { btnElement.innerText = originalText; }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                const input = document.createElement('textarea');
+                input.innerHTML = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                btnElement.innerText = '✅';
+                setTimeout(() => { btnElement.innerText = '📋'; }, 2000);
+            });
+        }
+
+        const selDv = document.getElementById('sel-dv');
+        const selIv = document.getElementById('sel-iv');
+        const selNature = document.getElementById('sel-nature');
+        const btnReset = document.getElementById('btn-reset');
+        const finderContainer = document.getElementById('finder-results');
+        const resultCount = document.getElementById('result-count');
+        const fullGlossaryContainer = document.getElementById('full-glossary-grid');
+        const searchInput = document.getElementById('search-input');
+
+        function renderResults(container, dataArray) {
+            if (dataArray.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-gray-500 glass-panel rounded-xl">
+                        <span class="text-4xl block mb-2">🤷‍♂️</span>
+                        <p class="text-lg font-medium">No methods match this exact combination.</p>
+                        <p class="text-sm mt-1">Try broadening your criteria.</p>
+                    </div>`;
+            } else {
+                container.innerHTML = dataArray.map(generateCardHTML).join('');
+            }
+        }
+
+        function filterFinder() {
+            const valDv = selDv.value;
+            const valIv = selIv.value;
+            const valNature = selNature.value;
+
+            const filtered = statsData.filter(item => {
+                const matchDv = valDv === 'all' || item.dv === valDv;
+                const matchIv = valIv === 'all' || item.iv === valIv;
+                const matchNature = valNature === 'all' || item.nature.includes(valNature) || (valNature === 'Categorical' && item.nature.includes('Categorical'));
+                return matchDv && matchIv && matchNature;
+            });
+
+            renderResults(finderContainer, filtered);
+            resultCount.innerText = `Showing ${filtered.length} matching method(s)`;
+        }
+
+        selDv.addEventListener('change', filterFinder);
+        selIv.addEventListener('change', filterFinder);
+        selNature.addEventListener('change', filterFinder);
+
+        btnReset.addEventListener('click', () => {
+            selDv.value = 'all';
+            selIv.value = 'all';
+            selNature.value = 'all';
+            filterFinder();
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = statsData.filter(item => 
+                item.method.toLowerCase().includes(query) || 
+                item.code.toLowerCase().includes(query) ||
+                item.example.toLowerCase().includes(query) ||
+                item.assumptions.toLowerCase().includes(query)
+            );
+            renderResults(fullGlossaryContainer, filtered);
+        });
+
+        function initChart() {
+            let intervalCount = 0;
+            let ordinalCount = 0;
+            let categoricalCount = 0;
+
+            statsData.forEach(item => {
+                if (item.nature.includes("Interval & Normal")) intervalCount++;
+                else if (item.nature.includes("Ordinal")) ordinalCount++;
+                else if (item.nature.includes("Categorical")) categoricalCount++;
+            });
+
+            document.getElementById('stat-interval').innerText = intervalCount;
+            document.getElementById('stat-ordinal').innerText = ordinalCount;
+            document.getElementById('stat-categorical').innerText = categoricalCount;
+
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Parametric / Interval', 'Non-Parametric / Ordinal', 'Categorical'],
+                    datasets: [{
+                        data: [intervalCount, ordinalCount, categoricalCount],
+                        backgroundColor: [
+                            'rgba(13, 148, 136, 0.8)', 
+                            'rgba(245, 158, 11, 0.8)', 
+                            'rgba(99, 102, 241, 0.8)'   
+                        ],
+                        borderColor: [
+                            'rgba(13, 148, 136, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(99, 102, 241, 1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: "'Segoe UI', sans-serif" } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    label += context.raw + ' Methods';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        renderResults(finderContainer, statsData);
+        renderResults(fullGlossaryContainer, statsData);
+        initChart();
+    </script>
+</body>
+</html>
