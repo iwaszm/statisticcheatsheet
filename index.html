@@ -27,135 +27,109 @@
         </div>
     </nav>
 
-    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+    <main class="flex-grow w-full">
 
-        <header class="text-center max-w-3xl mx-auto space-y-4 pt-8">
-            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">
-                Find the right <span class="gradient-text">Statistical Method</span>
-            </h1>
-            <p class="text-lg text-gray-600">
-                Use our AI assistant to analyze your experimental design, or manually select your variables to find the correct statistical test and R code.
-            </p>
-        </header>
+        <!-- HERO SECTION (XING STYLE) -->
+        <section class="hero-bg">
+            <div class="max-w-4xl mx-auto px-4">
+                <h1 class="hero-title">Find the right Statistical Method</h1>
+                
+                <div class="pill-input-container">
+                    <textarea id="ai-description" class="pill-textarea" placeholder="Describe your study design (e.g., 'Compare blood pressure before/after meds')"></textarea>
+                    <button id="btn-ai" class="pill-btn-ai">
+                        <span id="ai-btn-text">Analyze</span>
+                        <div id="ai-spinner" class="loader hidden"></div>
+                    </button>
+                    <p id="ai-error" class="hidden text-xs text-red-600 mt-2 font-medium text-center"></p>
+                </div>
 
-        <section id="finder" class="scroll-mt-24">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Interactive Method Finder</h2>
-                <p class="text-gray-600 mt-2">Describe your study in plain text, or select your study design parameters below to isolate the appropriate statistical test.</p>
-            </div>
+                <!-- DV Filter Pills -->
+                <div id="filter-dv" class="filter-group">
+                    <button class="pill-filter active" data-group="dv" data-value="all">All DVs</button>
+                    <button class="pill-filter" data-group="dv" data-value="1">1 DV</button>
+                    <button class="pill-filter" data-group="dv" data-value="2+">2+ DVs</button>
+                    <button class="pill-filter" data-group="dv" data-value="0">0 DVs</button>
+                </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div class="lg:col-span-4 glass-panel p-6 rounded-2xl space-y-6">
-                    
-                    <!-- AI Assistant Block -->
-                    <div class="p-4 bg-gradient-to-br from-teal-50 to-teal-100/50 border border-teal-200 rounded-xl shadow-sm">
-                        <label class="block text-sm font-bold text-teal-800 mb-2">✨ AI Study Analyzer</label>
-                        <textarea id="ai-description" rows="3" class="w-full text-sm border-gray-300 rounded-lg p-3 mb-3 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 shadow-inner resize-none" placeholder="Example: I want to compare the blood pressure of 50 patients before and after taking a new drug..."></textarea>
-                        <button id="btn-ai" class="w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-all shadow-md flex justify-center items-center gap-2">
-                            <span>Analyze Design</span>
-                            <div id="ai-spinner" class="loader hidden"></div>
-                        </button>
-                        <div id="ai-reasoning-container" class="hidden mt-3 p-3 bg-white/80 rounded border border-teal-100">
-                            <p id="ai-reasoning" class="text-sm text-teal-800 leading-relaxed"></p>
-                        </div>
-                        <p id="ai-error" class="hidden text-xs text-red-600 mt-2 font-medium"></p>
-                    </div>
+                <!-- IV Filter Pills -->
+                <div id="filter-iv" class="filter-group">
+                    <button class="pill-filter active" data-group="iv" data-value="all">All IV Designs</button>
+                    <button class="pill-filter" data-group="iv" data-value="0 IVs">0 IVs</button>
+                    <button class="pill-filter" data-group="iv" data-value="1 IV, 2 levels (Independent)">1 IV, 2 Levels (Indep.)</button>
+                    <button class="pill-filter" data-group="iv" data-value="1 IV, 2+ levels (Independent)">1 IV, 2+ Levels (Indep.)</button>
+                    <button class="pill-filter" data-group="iv" data-value="1 IV, 2 levels (Dependent)">1 IV, 2 Levels (Dep.)</button>
+                    <button class="pill-filter" data-group="iv" data-value="1 IV, 2+ levels (Dependent)">1 IV, 2+ Levels (Dep.)</button>
+                    <button class="pill-filter" data-group="iv" data-value="2+ IVs (Independent)">2+ IVs (Indep.)</button>
+                    <button class="pill-filter" data-group="iv" data-value="Regression">Regression</button>
+                    <button class="pill-filter" data-group="iv" data-value="Mixed">Mixed Effects</button>
+                </div>
 
-                    <h3 class="font-semibold text-lg border-b pb-2">Manual Variables Selection</h3>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Number of Dependent Variables (DVs)</label>
-                        <select id="sel-dv" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white">
-                            <option value="all">Any / Don't Know</option>
-                            <option value="1">1 Dependent Variable</option>
-                            <option value="2+">2+ Dependent Variables</option>
-                            <option value="0">0 Dependent Variables (Dimension Reduction)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Independent Variables (Design)</label>
-                        <select id="sel-iv" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white">
-                            <option value="all">Any / Don't Know</option>
-                            <option value="0 IVs">0 IVs (1 Population)</option>
-                            <option value="1 IV, 2 levels (Independent)">1 IV, 2 levels (Independent Groups)</option>
-                            <option value="1 IV, 2+ levels (Independent)">1 IV, 2+ levels (Independent Groups)</option>
-                            <option value="1 IV, 2 levels (Dependent)">1 IV, 2 levels (Dependent/Matched)</option>
-                            <option value="1 IV, 2+ levels (Dependent)">1 IV, 2+ levels (Dependent/Repeated)</option>
-                            <option value="2+ IVs (Independent)">2+ IVs (Independent groups)</option>
-                            <option value="Regression">1+ Interval/Categorical IVs (Regression)</option>
-                            <option value="Mixed">Fixed + Random Effects (Nested/Clustered)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nature of Dependent Variable</label>
-                        <select id="sel-nature" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white">
-                            <option value="all">Any / Don't Know</option>
-                            <option value="Interval & Normal">Interval & Normal (Continuous)</option>
-                            <option value="Ordinal/Interval">Ordinal or Non-Normal Interval</option>
-                            <option value="Categorical (2)">Categorical (Binary / 2 Categories)</option>
-                            <option value="Categorical">Categorical (General / 3+ Categories)</option>
-                        </select>
-                    </div>
-
-                    <button id="btn-reset" class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+                <div class="text-center mt-6">
+                    <button id="btn-reset" class="text-sm font-semibold text-green-700 hover:text-green-800 flex items-center gap-1 mx-auto">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         Reset Filters
                     </button>
                 </div>
 
-                <div class="lg:col-span-8 flex flex-col">
-                    <div id="result-count" class="text-sm text-teal-700 font-medium mb-4 pl-2">Showing all methods...</div>
-                    <div id="finder-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-max overflow-y-auto max-h-[700px] pr-2 pb-4">
-                    </div>
+                <div id="ai-reasoning-container" class="hidden mt-8 p-6 glass-panel rounded-2xl max-w-2xl mx-auto border-green-200">
+                    <p id="ai-reasoning" class="text-sm text-green-900 leading-relaxed italic text-center"></p>
                 </div>
             </div>
         </section>
 
-        <section id="glossary" class="scroll-mt-24 pt-8 border-t border-gray-200">
-            <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div class="max-w-2xl">
-                    <h2 class="text-2xl font-bold text-gray-900">Full Method Glossary</h2>
-                    <p class="text-gray-600 mt-2">Browse the complete dictionary of statistical methods. Search by test name, R function, or keyword.</p>
-                </div>
-                <div class="relative w-full md:w-72">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+        <!-- RESULTS SECTION -->
+        <section id="finder" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div id="result-count" class="text-lg font-bold text-slate-900">Showing all methods...</div>
+                
+                <div class="relative w-full md:w-80">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </span>
-                    <input type="text" id="search-input" placeholder="Search methods, R code..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                    <input type="text" id="search-input" placeholder="Search methods, keywords..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm">
                 </div>
             </div>
 
-            <div id="full-glossary-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="finder-results" class="kanban-grid">
+                <!-- Cards will be injected here -->
             </div>
         </section>
 
-        <section id="assumptions" class="scroll-mt-24 pt-8 border-t border-gray-200 mb-16">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Key Assumptions Dictionary</h2>
-                <p class="text-gray-600 mt-2">Understanding the prerequisites for your statistical models is crucial to avoid false positives/negatives. Review core terminology here.</p>
+        <!-- SECONDARY SECTIONS (Glossary & Assumptions) -->
+        <section id="glossary" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200">
+            <div class="mb-10 text-center max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Full Method Glossary</h2>
+                <p class="text-slate-600">Browse the complete dictionary of statistical methods. Search by test name, R function, or keyword.</p>
+            </div>
+            <div id="full-glossary-grid" class="kanban-grid"></div>
+        </section>
+
+        <section id="assumptions" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200 mb-16">
+            <div class="mb-10 text-center max-w-2xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Key Assumptions Dictionary</h2>
+                <p class="text-slate-600">Understanding the prerequisites for your statistical models is crucial to avoid false positives/negatives.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="glass-panel p-5 rounded-xl border-l-4 border-teal-500">
-                    <h4 class="font-bold text-lg text-gray-900 mb-1">Independence (独立性)</h4>
-                    <p class="text-gray-600 text-sm">Data points do not influence each other. A person's score does not affect another's. Violations here usually require Mixed Models (LMM) or Repeated Measures.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="kanban-card border-l-4 border-green-500">
+                    <h4 class="font-bold text-lg text-slate-900 mb-2">Independence (独立性)</h4>
+                    <p class="text-slate-600 text-sm">Data points do not influence each other. A person's score does not affect another's.</p>
                 </div>
-                <div class="glass-panel p-5 rounded-xl border-l-4 border-teal-500">
-                    <h4 class="font-bold text-lg text-gray-900 mb-1">Normality of residuals (残差正态性)</h4>
-                    <p class="text-gray-600 text-sm">The difference between observed and predicted values should be normally distributed. Often checked with Q-Q plots or Shapiro-Wilk test.</p>
+                <div class="kanban-card border-l-4 border-green-500">
+                    <h4 class="font-bold text-lg text-slate-900 mb-2">Normality of residuals (残差正态性)</h4>
+                    <p class="text-slate-600 text-sm">The difference between observed and predicted values should be normally distributed.</p>
                 </div>
-                <div class="glass-panel p-5 rounded-xl border-l-4 border-amber-500">
-                    <h4 class="font-bold text-lg text-gray-900 mb-1">Homogeneity of variance (方差齐性)</h4>
-                    <p class="text-gray-600 text-sm">Also called homoscedasticity. The variance within each group (or along the regression line) should be roughly equal. <em>Note: Welch's t-test bypasses this.</em></p>
+                <div class="kanban-card border-l-4 border-amber-500">
+                    <h4 class="font-bold text-lg text-slate-900 mb-2">Homogeneity of variance (方差齐性)</h4>
+                    <p class="text-slate-600 text-sm">Also called homoscedasticity. The variance within each group should be roughly equal.</p>
                 </div>
-                <div class="glass-panel p-5 rounded-xl border-l-4 border-amber-500">
-                    <h4 class="font-bold text-lg text-gray-900 mb-1">Sphericity (球形假设)</h4>
-                    <p class="text-gray-600 text-sm">Only for repeated measures (rmANOVA). The variances of the differences between all possible pairs of within-subject conditions are equal. <em>Mixed Models (LMM) bypasses this.</em></p>
+                <div class="kanban-card border-l-4 border-amber-500">
+                    <h4 class="font-bold text-lg text-slate-900 mb-2">Sphericity (球形假设)</h4>
+                    <p class="text-slate-600 text-sm">Only for repeated measures (rmANOVA). Differences variances are equal.</p>
                 </div>
-                <div class="glass-panel p-5 rounded-xl border-l-4 border-indigo-500 md:col-span-2">
-                    <h4 class="font-bold text-lg text-gray-900 mb-1">Multicollinearity (多重共线性)</h4>
-                    <p class="text-gray-600 text-sm">In regression, predictors (IVs) should not be too highly correlated with each other, as it inflates variance and makes coefficient estimates unstable. Checked via VIF (Variance Inflation Factor).</p>
+                <div class="kanban-card border-l-4 border-indigo-500 lg:col-span-2">
+                    <h4 class="font-bold text-lg text-slate-900 mb-2">Multicollinearity (多重共线性)</h4>
+                    <p class="text-slate-600 text-sm">Predictors should not be too highly correlated. Checked via VIF.</p>
                 </div>
             </div>
         </section>
