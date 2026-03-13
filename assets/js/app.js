@@ -56,6 +56,7 @@ const copyToClipboard = async (text, btnElement) => {
 };
 
 const renderResults = (container, dataArray) => {
+  if (!container) return;
   if (dataArray.length === 0) {
     container.innerHTML = `
       <div class="col-span-full py-12 text-center text-slate-500 bg-white rounded-xl border border-slate-200">
@@ -71,7 +72,6 @@ const renderResults = (container, dataArray) => {
 };
 
 const main = () => {
-  // New State structure
   const state = {
     objective: 'all',
     outcome_type: 'all',
@@ -84,23 +84,35 @@ const main = () => {
   const fullGlossaryContainer = document.getElementById('full-glossary-grid');
   const searchInput = document.getElementById('search-input');
   const relContainer = document.getElementById('container-relationship');
+  const pageSwitcher = document.getElementById('page-switcher');
 
-  // AI Elements
-  const btnAi = document.getElementById('btn-ai');
-  const aiDescription = document.getElementById('ai-description');
-  const aiSpinner = document.getElementById('ai-spinner');
-  const aiReasoningContainer = document.getElementById('ai-reasoning-container');
-  const aiReasoning = document.getElementById('ai-reasoning');
-  const aiError = document.getElementById('ai-error');
+  // Navigation Logic
+  if (pageSwitcher) {
+    pageSwitcher.addEventListener('click', (e) => {
+        const btn = e.target.closest('.segmented-item');
+        if (!btn) return;
+        
+        const page = btn.dataset.page;
+        
+        // Update Buttons
+        pageSwitcher.querySelectorAll('.segmented-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Update Views
+        document.getElementById('page-finder').classList.toggle('hidden', page !== 'finder');
+        document.getElementById('page-glossary').classList.toggle('hidden', page !== 'glossary');
+    });
+  }
 
   const filterFinder = () => {
-    // UI Logic: Dim Relationship filter if not "Compare"
-    if (state.objective !== 'all' && state.objective !== 'Compare') {
-        relContainer.style.opacity = '0.4';
-        relContainer.style.pointerEvents = 'none';
-    } else {
-        relContainer.style.opacity = '1';
-        relContainer.style.pointerEvents = 'auto';
+    if (relContainer) {
+        if (state.objective !== 'all' && state.objective !== 'Compare') {
+            relContainer.style.opacity = '0.4';
+            relContainer.style.pointerEvents = 'none';
+        } else {
+            relContainer.style.opacity = '1';
+            relContainer.style.pointerEvents = 'auto';
+        }
     }
 
     const filtered = statsData.filter(item => {
@@ -108,7 +120,6 @@ const main = () => {
       const matchType = state.outcome_type === 'all' || item.outcome_type === state.outcome_type;
       const matchCount = state.counts === 'all' || item.counts === state.counts;
       
-      // Only apply relationship filter if we are in Compare mode OR it's 'all'
       let matchRel = true;
       if (state.relationship !== 'all') {
           matchRel = item.relationship === state.relationship;
@@ -118,7 +129,7 @@ const main = () => {
     });
 
     renderResults(finderContainer, filtered);
-    resultCount.innerText = `Showing ${filtered.length} matching method(s)`;
+    if (resultCount) resultCount.innerText = `Showing ${filtered.length} matching method(s)`;
   };
 
   const setupSegmentedGroup = (groupId, type) => {
@@ -142,16 +153,18 @@ const main = () => {
   setupSegmentedGroup('filter-counts', 'counts');
   setupSegmentedGroup('filter-relationship', 'relationship');
 
-  searchInput.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase();
-    const filtered = statsData.filter(item =>
-      item.method.toLowerCase().includes(query) ||
-      item.code.toLowerCase().includes(query) ||
-      item.example.toLowerCase().includes(query) ||
-      item.assumptions.toLowerCase().includes(query)
-    );
-    renderResults(fullGlossaryContainer, filtered);
-  });
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = statsData.filter(item =>
+          item.method.toLowerCase().includes(query) ||
+          item.code.toLowerCase().includes(query) ||
+          item.example.toLowerCase().includes(query) ||
+          item.assumptions.toLowerCase().includes(query)
+        );
+        renderResults(fullGlossaryContainer, filtered);
+    });
+  }
 
   document.addEventListener('click', (e) => {
     const btn = e.target.closest?.('.btn-copy');
@@ -159,6 +172,14 @@ const main = () => {
     const code = btn.getAttribute('data-copy') || '';
     copyToClipboard(code, btn);
   });
+
+  // AI Logic (keeping it for future use)
+  const btnAi = document.getElementById('btn-ai');
+  const aiDescription = document.getElementById('ai-description');
+  const aiSpinner = document.getElementById('ai-spinner');
+  const aiReasoningContainer = document.getElementById('ai-reasoning-container');
+  const aiReasoning = document.getElementById('ai-reasoning');
+  const aiError = document.getElementById('ai-error');
 
   async function analyzeWithAI() {
     const text = aiDescription.value.trim();
@@ -170,7 +191,7 @@ const main = () => {
     aiError.classList.add('hidden');
 
     if (!apiKey) {
-      aiError.innerText = 'AI is disabled (no API key configured).';
+      aiError.innerText = 'AI Analysis requires an API key.';
       aiError.classList.remove('hidden');
       btnAi.disabled = false;
       aiSpinner.classList.add('hidden');
@@ -178,44 +199,25 @@ const main = () => {
     }
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-    const systemPrompt = `Analyze the study design. Return JSON with:
-- objective: 'Compare', 'Associate', 'Predict', 'SingleGroup', 'Reduction'
-- outcome_type: 'Continuous', 'Ordinal', 'Binary', 'Multinomial'
-- counts: '1', '2', '3+'
-- relationship: 'Independent', 'Paired', 'NA'
-- reasoning: brief explanation.`;
-
-    const payload = {
-      contents: [{ parts: [{ text }] }],
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: { responseMimeType: 'application/json' }
-    };
+    const systemPrompt = `Analyze study design. Return JSON with objective, outcome_type, counts, relationship, reasoning.`;
+    const payload = { contents: [{ parts: [{ text }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: 'application/json' } };
 
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const result = await response.json();
       let jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
       if (jsonText) {
         const parsed = JSON.parse(jsonText.replace(/```json|```/gi, ''));
-        
         const clickPill = (groupId, val) => {
             const container = document.getElementById(groupId);
             if(!container) return;
             const btn = container.querySelector(`.segmented-item[data-value="${val}"]`);
             if(btn) btn.click();
         };
-
         if (parsed.objective) clickPill('filter-objective', parsed.objective);
         if (parsed.outcome_type) clickPill('filter-outcome', parsed.outcome_type);
         if (parsed.counts) clickPill('filter-counts', parsed.counts);
         if (parsed.relationship) clickPill('filter-relationship', parsed.relationship);
-
         aiReasoning.innerHTML = `<strong>AI Analysis:</strong> ${parsed.reasoning}`;
         aiReasoningContainer.classList.remove('hidden');
       }
@@ -228,7 +230,7 @@ const main = () => {
     }
   }
 
-  btnAi.addEventListener('click', analyzeWithAI);
+  if (btnAi) btnAi.addEventListener('click', analyzeWithAI);
 
   // Initial render
   renderResults(finderContainer, statsData);

@@ -3,165 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistical Methods Interactive Explorer</title>
+    <title>StatFinder Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="./assets/css/styles.css" />
-
-    <!-- Chosen Palette: Warm Sand & Slate (Background: #F9FAFB, Cards: White, Text: #1F2937, Accents: #0D9488 teal, #F59E0B amber) -->
-    <!-- Application Structure Plan: The SPA uses a functional dashboard approach. It begins with an 'Interactive Method Finder' featuring a new AI-powered text analysis input. Users can either type their study design for auto-classification via Gemini API or manually use the dropdowns. This is followed by a searchable 'Method Glossary' and an 'Assumptions Dictionary'. The structure focuses entirely on utility and rapid method discovery. -->
-    <!-- Visualization & Content Choices: 1. AI Method Finder: HTML form + Gemini API -> Goal: Automate Selection -> User types description, API returns structured JSON, JS updates selects and filters results. 2. Glossary: CSS Grid + JS Search -> Goal: Organize/Explore -> Allows quick keyword lookups for specific tests or R code. Confirming no SVG, Chart.js, or Mermaid JS is used. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen flex flex-col bg-gradient-subtle">
 
     <nav class="sticky top-0 z-50 glass-panel border-b border-gray-200 py-4 px-6 md:px-12 flex justify-between items-center">
-        <div class="text-xl font-bold text-teal-700">
+        <div class="text-xl font-bold text-slate-900">
             StatFinder Pro
         </div>
-        <div class="hidden md:flex gap-6 text-sm font-medium text-gray-600">
-            <a href="#finder" class="hover:text-teal-600 transition-colors">Method Finder</a>
-            <a href="#glossary" class="hover:text-teal-600 transition-colors">Full Glossary</a>
-            <a href="#assumptions" class="hover:text-teal-600 transition-colors">Assumptions Guide</a>
+        <div class="flex gap-4">
+            <div id="page-switcher" class="segmented-control">
+                <button class="segmented-item active" data-page="finder">Method Finder</button>
+                <button class="segmented-item" data-page="glossary">Full Glossary</button>
+            </div>
         </div>
     </nav>
 
     <main class="flex-grow w-full">
 
-        <!-- HERO SECTION (iOS STYLE) -->
-        <section class="hero-bg">
-            <div class="max-w-4xl mx-auto px-4">
-                <h1 class="hero-title">Find the right Statistical Method</h1>
-                
-                <div class="pill-input-container">
-                    <textarea id="ai-description" class="pill-textarea" placeholder="Describe your study design (e.g., 'Compare blood pressure before/after meds')"></textarea>
-                    <button id="btn-ai" class="pill-btn-ai">
-                        <span id="ai-btn-text">Analyze</span>
-                        <div id="ai-spinner" class="loader hidden"></div>
-                    </button>
-                    <p id="ai-error" class="hidden text-xs text-red-600 mt-2 font-medium text-center"></p>
-                </div>
-
-                <!-- FILTER 1: Primary Objective -->
-                <div class="segmented-control-container">
-                    <span class="segmented-label">Objective</span>
-                    <div id="filter-objective" class="segmented-control">
-                        <button class="segmented-item active" data-group="objective" data-value="all">Any</button>
-                        <button class="segmented-item" data-group="objective" data-value="Compare">Compare Differences</button>
-                        <button class="segmented-item" data-group="objective" data-value="Associate">Find Associations</button>
-                        <button class="segmented-item" data-group="objective" data-value="Predict">Predict Outcomes</button>
-                        <button class="segmented-item" data-group="objective" data-value="SingleGroup">Single Group</button>
-                        <button class="segmented-item" data-group="objective" data-value="Reduction">Data Reduction</button>
+        <!-- PAGE 1: METHOD FINDER -->
+        <div id="page-finder" class="page-view">
+            <section class="hero-bg">
+                <div class="max-w-4xl mx-auto px-4">
+                    <h1 class="hero-title">Find the right Statistical Method</h1>
+                    
+                    <div class="pill-input-container">
+                        <textarea id="ai-description" class="pill-textarea" placeholder="Describe your study design (e.g., 'Compare blood pressure before/after meds')"></textarea>
+                        <button id="btn-ai" class="pill-btn-ai">
+                            <span id="ai-btn-text">Analyze</span>
+                            <div id="ai-spinner" class="loader hidden"></div>
+                        </button>
+                        <p id="ai-error" class="hidden text-xs text-red-600 mt-2 font-medium text-center"></p>
                     </div>
-                    <button class="info-btn" title="What are you trying to achieve with your analysis?">i</button>
-                </div>
 
-                <!-- FILTER 2: Data Type of Outcome -->
-                <div class="segmented-control-container">
-                    <span class="segmented-label">Outcome</span>
-                    <div id="filter-outcome" class="segmented-control">
-                        <button class="segmented-item active" data-group="outcome_type" data-value="all">Any</button>
-                        <button class="segmented-item" data-group="outcome_type" data-value="Continuous">Continuous & Normal</button>
-                        <button class="segmented-item" data-group="outcome_type" data-value="Ordinal">Ordinal / Non-Normal</button>
-                        <button class="segmented-item" data-group="outcome_type" data-value="Binary">Binary (2 cat)</button>
-                        <button class="segmented-item" data-group="outcome_type" data-value="Multinomial">Multinomial (3+ cat)</button>
+                    <div class="segmented-control-container">
+                        <span class="segmented-label">Objective</span>
+                        <div id="filter-objective" class="segmented-control">
+                            <button class="segmented-item active" data-group="objective" data-value="all">Any</button>
+                            <button class="segmented-item" data-group="objective" data-value="Compare">Compare Differences</button>
+                            <button class="segmented-item" data-group="objective" data-value="Associate">Find Associations</button>
+                            <button class="segmented-item" data-group="objective" data-value="Predict">Predict Outcomes</button>
+                            <button class="segmented-item" data-group="objective" data-value="SingleGroup">Single Group</button>
+                            <button class="segmented-item" data-group="objective" data-value="Reduction">Data Reduction</button>
+                        </div>
+                        <button class="info-btn" title="What are you trying to achieve?">i</button>
                     </div>
-                    <button class="info-btn" title="What kind of data is your main result (Dependent Variable)?">i</button>
-                </div>
 
-                <!-- FILTER 3: Number of Groups / Predictors -->
-                <div class="segmented-control-container">
-                    <span class="segmented-label">Counts</span>
-                    <div id="filter-counts" class="segmented-control">
-                        <button class="segmented-item active" data-group="counts" data-value="all">Any</button>
-                        <button class="segmented-item" data-group="counts" data-value="1">1</button>
-                        <button class="segmented-item" data-group="counts" data-value="2">2</button>
-                        <button class="segmented-item" data-group="counts" data-value="3+">3 or more</button>
+                    <div class="segmented-control-container">
+                        <span class="segmented-label">Outcome</span>
+                        <div id="filter-outcome" class="segmented-control">
+                            <button class="segmented-item active" data-group="outcome_type" data-value="all">Any</button>
+                            <button class="segmented-item" data-group="outcome_type" data-value="Continuous">Continuous & Normal</button>
+                            <button class="segmented-item" data-group="outcome_type" data-value="Ordinal">Ordinal / Non-Normal</button>
+                            <button class="segmented-item" data-group="outcome_type" data-value="Binary">Binary (2 cat)</button>
+                            <button class="segmented-item" data-group="outcome_type" data-value="Multinomial">Multinomial (3+ cat)</button>
+                        </div>
+                        <button class="info-btn" title="Data type of your result (DV)">i</button>
                     </div>
-                    <button class="info-btn" title="Number of groups being compared or number of predictors in a model.">i</button>
-                </div>
 
-                <!-- FILTER 4: Sample Relationship -->
-                <div id="container-relationship" class="segmented-control-container">
-                    <span class="segmented-label">Relationship</span>
-                    <div id="filter-relationship" class="segmented-control">
-                        <button class="segmented-item active" data-group="relationship" data-value="all">Any</button>
-                        <button class="segmented-item" data-group="relationship" data-value="Independent">Independent</button>
-                        <button class="segmented-item" data-group="relationship" data-value="Paired">Paired / Repeated</button>
-                        <button class="segmented-item" data-group="relationship" data-value="NA">Not Applicable</button>
+                    <div class="segmented-control-container">
+                        <span class="segmented-label">Counts</span>
+                        <div id="filter-counts" class="segmented-control">
+                            <button class="segmented-item active" data-group="counts" data-value="all">Any</button>
+                            <button class="segmented-item" data-group="counts" data-value="1">1</button>
+                            <button class="segmented-item" data-group="counts" data-value="2">2</button>
+                            <button class="segmented-item" data-group="counts" data-value="3+">3 or more</button>
+                        </div>
+                        <button class="info-btn" title="Number of groups or predictors">i</button>
                     </div>
-                    <button class="info-btn" title="Are the samples from the same subjects (Paired) or different subjects (Independent)?">i</button>
-                </div>
 
-                <div id="ai-reasoning-container" class="hidden mt-8 p-6 glass-panel rounded-2xl max-w-2xl mx-auto border border-blue-100">
-                    <p id="ai-reasoning" class="text-sm text-slate-800 leading-relaxed italic text-center"></p>
-                </div>
-            </div>
-        </section>
+                    <div id="container-relationship" class="segmented-control-container">
+                        <span class="segmented-label">Relationship</span>
+                        <div id="filter-relationship" class="segmented-control">
+                            <button class="segmented-item active" data-group="relationship" data-value="all">Any</button>
+                            <button class="segmented-item" data-group="relationship" data-value="Independent">Independent</button>
+                            <button class="segmented-item" data-group="relationship" data-value="Paired">Paired / Repeated</button>
+                            <button class="segmented-item" data-group="relationship" data-value="NA">Not Applicable</button>
+                        </div>
+                        <button class="info-btn" title="Are samples from same or different subjects?">i</button>
+                    </div>
 
-        <!-- RESULTS SECTION -->
-        <section id="finder" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div id="result-count" class="text-lg font-bold text-slate-900">Showing all methods...</div>
-                
-                <div class="relative w-full md:w-80">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </span>
-                    <input type="text" id="search-input" placeholder="Search methods, keywords..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm">
+                    <div id="ai-reasoning-container" class="hidden mt-8 p-6 glass-panel rounded-2xl max-w-2xl mx-auto border border-blue-100">
+                        <p id="ai-reasoning" class="text-sm text-slate-800 leading-relaxed italic text-center"></p>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <div id="finder-results" class="kanban-grid">
-                <!-- Cards will be injected here -->
-            </div>
-        </section>
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div id="result-count" class="text-lg font-bold text-slate-900 mb-8">Showing matching methods...</div>
+                <div id="finder-results" class="kanban-grid"></div>
+            </section>
+        </div>
 
-        <!-- SECONDARY SECTIONS (Glossary & Assumptions) -->
-        <section id="glossary" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200">
-            <div class="mb-10 text-center max-w-2xl mx-auto">
-                <h2 class="text-3xl font-bold text-slate-900 mb-4">Full Method Glossary</h2>
-                <p class="text-slate-600">Browse the complete dictionary of statistical methods. Search by test name, R function, or keyword.</p>
-            </div>
-            <div id="full-glossary-grid" class="kanban-grid"></div>
-        </section>
-
-        <section id="assumptions" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-200 mb-16">
-            <div class="mb-10 text-center max-w-2xl mx-auto">
-                <h2 class="text-3xl font-bold text-slate-900 mb-4">Key Assumptions Dictionary</h2>
-                <p class="text-slate-600">Understanding the prerequisites for your statistical models is crucial to avoid false positives/negatives.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="kanban-card border-l-4 border-green-500">
-                    <h4 class="font-bold text-lg text-slate-900 mb-2">Independence (独立性)</h4>
-                    <p class="text-slate-600 text-sm">Data points do not influence each other. A person's score does not affect another's.</p>
+        <!-- PAGE 2: FULL GLOSSARY -->
+        <div id="page-glossary" class="page-view hidden">
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="mb-12 text-center max-w-2xl mx-auto">
+                    <h2 class="text-4xl font-bold text-slate-900 mb-4">Full Method Glossary</h2>
+                    <p class="text-slate-600">Browse the complete dictionary of statistical methods. Search by test name, R function, or keyword.</p>
+                    
+                    <div class="mt-8 relative max-w-lg mx-auto">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </span>
+                        <input type="text" id="search-input" placeholder="Search methods, keywords..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                    </div>
                 </div>
-                <div class="kanban-card border-l-4 border-green-500">
-                    <h4 class="font-bold text-lg text-slate-900 mb-2">Normality of residuals (残差正态性)</h4>
-                    <p class="text-slate-600 text-sm">The difference between observed and predicted values should be normally distributed.</p>
-                </div>
-                <div class="kanban-card border-l-4 border-amber-500">
-                    <h4 class="font-bold text-lg text-slate-900 mb-2">Homogeneity of variance (方差齐性)</h4>
-                    <p class="text-slate-600 text-sm">Also called homoscedasticity. The variance within each group should be roughly equal.</p>
-                </div>
-                <div class="kanban-card border-l-4 border-amber-500">
-                    <h4 class="font-bold text-lg text-slate-900 mb-2">Sphericity (球形假设)</h4>
-                    <p class="text-slate-600 text-sm">Only for repeated measures (rmANOVA). Differences variances are equal.</p>
-                </div>
-                <div class="kanban-card border-l-4 border-indigo-500 lg:col-span-2">
-                    <h4 class="font-bold text-lg text-slate-900 mb-2">Multicollinearity (多重共线性)</h4>
-                    <p class="text-slate-600 text-sm">Predictors should not be too highly correlated. Checked via VIF.</p>
-                </div>
-            </div>
-        </section>
+                <div id="full-glossary-grid" class="kanban-grid"></div>
+            </section>
+        </div>
 
     </main>
 
-    <footer class="bg-gray-900 text-gray-400 py-8 text-center text-sm">
-        <p>Statistical Methods Explorer. Built with Tailwind CSS & Gemini AI.</p>
-        <p class="mt-2">Always verify assumptions with your specific dataset before finalizing models.</p>
+    <footer class="bg-white border-t border-gray-200 py-8 text-center text-sm text-slate-500">
+        <p>StatFinder Pro. Built with iOS Design Principles & Gemini AI.</p>
     </footer>
 
     <script type="module" src="./assets/js/app.js"></script>
