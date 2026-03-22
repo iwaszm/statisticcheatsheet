@@ -1,4 +1,5 @@
 import { statsData } from './data/statsData.js';
+import { descriptiveData } from './data/descriptiveData.js';
 
 // NOTE: apiKey is intentionally empty for GitHub Pages.
 const apiKey = "";
@@ -28,6 +29,52 @@ const generateCardHTML = (item) => {
             <code>${item.code}</code>
             <button data-copy="${codeAttr}" class="btn-copy absolute top-2 right-2 text-slate-400 hover:text-white transition-colors p-1" title="Copy Code">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            </button>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const generateDescriptiveCardHTML = (item) => {
+  const codeAttr = escapeAttr(item.code);
+  
+  // Tag (Level) - Small, square white box above title
+  const levelPill = `<div class="inline-block bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 rounded border border-slate-100 mb-2 uppercase tracking-tight">Level ${item.level}</div>`;
+
+  return `
+    <div class="kanban-card aws-card h-full flex flex-col p-6 relative overflow-visible group cursor-default">
+      
+      <!-- Tag above Title -->
+      <div class="relative z-10">
+        ${levelPill}
+      </div>
+
+      <!-- Title (Large, Bold, One line) -->
+      <div class="mb-2 min-w-0 relative z-10">
+        <h4 class="text-xl font-bold text-slate-900 truncate leading-tight tracking-tight" title="${item.method}">
+            ${item.method}
+        </h4>
+      </div>
+
+      <!-- Function (Directly below Title) -->
+      <div class="flex-grow text-[14px] leading-relaxed text-slate-600 relative z-10">
+        <div class="mb-3 font-normal">
+            ${item.function}
+        </div>
+        
+        <!-- Example (Italicized) -->
+        <div class="mb-4 pl-3 border-l-2 border-slate-200/60 py-1">
+            <p class="italic text-slate-400 text-[13px]">"${item.example}"</p>
+        </div>
+      </div>
+
+      <!-- Code Snippet (Moved Up, No Divider) -->
+      <div class="mt-1 relative z-10">
+        <div class="code-snippet group/code relative bg-slate-100/50 rounded-lg border border-slate-200/20">
+            <code class="block p-2 text-[11px] font-mono text-blue-700 overflow-x-auto selection:bg-blue-100">${item.code}</code>
+            <button data-copy="${codeAttr}" class="btn-copy absolute top-1.5 right-1.5 p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-white transition-all opacity-0 group-hover/code:opacity-100 shadow-sm" title="Copy Code">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
             </button>
         </div>
       </div>
@@ -71,6 +118,11 @@ const renderResults = (container, dataArray) => {
   }
 };
 
+const renderDescriptive = (container, dataArray) => {
+  if (!container) return;
+  container.innerHTML = dataArray.map(generateDescriptiveCardHTML).join('');
+};
+
 const main = () => {
   const state = {
     objective: 'all',
@@ -81,28 +133,48 @@ const main = () => {
 
   const finderContainer = document.getElementById('finder-results');
   const resultCount = document.getElementById('result-count');
-  const fullGlossaryContainer = document.getElementById('full-glossary-grid');
-  const searchInput = document.getElementById('search-input');
   const relContainer = document.getElementById('container-relationship');
-  const pageSwitcher = document.getElementById('page-switcher');
+  const descriptiveGrid = document.getElementById('descriptive-grid');
 
-  // Navigation Logic
-  if (pageSwitcher) {
-    pageSwitcher.addEventListener('click', (e) => {
-        const btn = e.target.closest('.segmented-item');
-        if (!btn) return;
-        
-        const page = btn.dataset.page;
-        
-        // Update Buttons
-        pageSwitcher.querySelectorAll('.segmented-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        // Update Views
-        document.getElementById('page-finder').classList.toggle('hidden', page !== 'finder');
-        document.getElementById('page-glossary').classList.toggle('hidden', page !== 'glossary');
-    });
-  }
+  // Page Switcher Logic
+  const switchPage = (targetId) => {
+      // Hide all pages
+      document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+      
+      // Show Target
+      const targetPage = document.getElementById(`page-${targetId}`);
+      if(targetPage) {
+          targetPage.classList.remove('hidden');
+      }
+
+      // Update Nav Buttons State
+      document.querySelectorAll('#main-nav-container button').forEach(btn => {
+          if(btn.id === `nav-${targetId}`) {
+              btn.classList.add('bg-white', 'shadow-sm', 'text-black');
+              btn.classList.remove('text-[#8E8E93]');
+          } else {
+              btn.classList.remove('bg-white', 'shadow-sm', 'text-black');
+              btn.classList.add('text-[#8E8E93]');
+          }
+      });
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Expose to window for inline onclick handlers (if any)
+  window.switchPage = switchPage;
+
+  // Bind Nav Buttons
+  ['descriptive', 'inferential', 'predictive'].forEach(page => {
+      const btn = document.getElementById(`nav-${page}`);
+      if(btn) {
+          btn.addEventListener('click', (e) => {
+              e.preventDefault();
+              switchPage(page);
+          });
+      }
+  });
 
   const filterFinder = () => {
     if (relContainer) {
@@ -153,19 +225,6 @@ const main = () => {
   setupSegmentedGroup('filter-counts', 'counts');
   setupSegmentedGroup('filter-relationship', 'relationship');
 
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const filtered = statsData.filter(item =>
-          item.method.toLowerCase().includes(query) ||
-          item.code.toLowerCase().includes(query) ||
-          item.example.toLowerCase().includes(query) ||
-          item.assumptions.toLowerCase().includes(query)
-        );
-        renderResults(fullGlossaryContainer, filtered);
-    });
-  }
-
   document.addEventListener('click', (e) => {
     const btn = e.target.closest?.('.btn-copy');
     if (!btn) return;
@@ -189,14 +248,6 @@ const main = () => {
     aiSpinner.classList.remove('hidden');
     aiReasoningContainer.classList.add('hidden');
     aiError.classList.add('hidden');
-
-    if (!apiKey) {
-      aiError.innerText = 'AI Analysis requires an API key.';
-      aiError.classList.remove('hidden');
-      btnAi.disabled = false;
-      aiSpinner.classList.add('hidden');
-      return;
-    }
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
     const systemPrompt = `Analyze study design. Return JSON with objective, outcome_type, counts, relationship, reasoning.`;
@@ -233,8 +284,11 @@ const main = () => {
   if (btnAi) btnAi.addEventListener('click', analyzeWithAI);
 
   // Initial render
-  renderResults(finderContainer, statsData);
-  renderResults(fullGlossaryContainer, statsData);
+  filterFinder();
+  renderDescriptive(descriptiveGrid, descriptiveData);
+
+  // Default view
+  switchPage('inferential');
 };
 
 document.addEventListener('DOMContentLoaded', main);

@@ -9,6 +9,90 @@ body {
   background: linear-gradient(180deg, #f5f5f7 0%, #ffffff 100%);
 }
 
+/* AWS Style Dynamic Gradient Background (LIGHT VERSION) */
+@keyframes awsGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.aws-gradient-bg {
+    background: linear-gradient(125deg, #f0f4f8, #ffffff, #eef2f7, #fdfbfb);
+    background-size: 400% 400%;
+    animation: awsGradient 20s ease infinite;
+    color: #1d1d1f;
+    position: relative;
+    z-index: 0;
+}
+
+/* Ensure navbar is ALWAYS on top of everything */
+#main-nav-container {
+    position: sticky;
+    top: 16px;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+#main-nav-container button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* AWS Style Card (LIGHT VERSION) */
+.aws-card {
+    background-color: #f2f3f3; /* Solid Light Gray */
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    /* Removed z-index from parent to allow pseudo-element to use negative z-index relative to this container's background */
+    z-index: 1;
+    transform-style: preserve-3d; /* Hint to browser to maintain 3D layers */
+}
+
+/* Backlight effect using a pseudo-element */
+.aws-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    border-radius: 16px;
+    /* Use translateZ to push it behind the background plane */
+    transform: translateZ(-1px); 
+    z-index: -1;
+    filter: blur(0px);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.aws-card:hover {
+    transform: translateY(-5px);
+    background-color: #ffffff; /* Solid White */
+    border-color: transparent;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+.aws-card:hover::before {
+    filter: blur(25px);
+    opacity: 0.15;
+    transform: translateZ(-1px) scale(1.05);
+}
+
+.aws-card .card-title {
+    color: #1c1c1e;
+}
+
+/* Color overrides for light theme inside aws-card */
+.aws-card .text-white { color: #1c1c1e !important; }
+.aws-card .text-white\/90 { color: #2c2c2e !important; }
+.aws-card .text-gray-300 { color: #48484a !important; }
+.aws-card .text-gray-400 { color: #8e8e93 !important; }
+.aws-card .border-white\/10 { border-color: rgba(0,0,0,0.08) !important; }
+.aws-card .bg-black\/20 { background-color: #f5f5f7 !important; }
+.aws-card code { color: #007aff !important; }
+
 .hero-bg {
     background: transparent;
     padding: 60px 20px 40px;

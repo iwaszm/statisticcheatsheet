@@ -4,31 +4,238 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StatFinder Pro</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="./assets/css/styles.css" />
-</head>
-<body class="antialiased min-h-screen flex flex-col bg-gradient-subtle">
+    <style>
+        /* Home Page - Square Cutout Effect */
+        .home-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 95vh;
+            background: white;
+            padding-top: 5vh;
+        }
 
-    <nav class="sticky top-0 z-50 glass-panel border-b border-gray-200 py-4 px-6 md:px-12 flex justify-between items-center">
-        <div class="text-xl font-bold text-slate-900">
-            StatFinder Pro
+        .meta-square-wrapper {
+            position: relative;
+            width: 720px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+            border-radius: 44px;
+            background: #F2F3F3; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1; 
+        }
+
+        /* The Gradient Background Layer (Backlight) */
+        .meta-gradient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%); /* Indigo-Violet-Fuchsia */
+            z-index: -1; 
+            border-radius: 44px;
+            filter: blur(0px);
+            opacity: 1; 
+            transform: scale(1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .meta-square-wrapper:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .meta-square-wrapper:hover .meta-gradient-bg {
+            filter: blur(30px);
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+
+        /* The "Cover" Layer with Cutout Text */
+        .cutout-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #F2F3F3; 
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px;
+            mix-blend-mode: screen; 
+            user-select: none;
+            border-radius: 44px;
+        }
+
+        .cutout-text {
+            color: black; 
+            font-size: 80px;
+            font-weight: 900;
+            line-height: 1.1;
+            text-align: center;
+            margin: 0;
+            letter-spacing: -3px;
+            padding-top: 20px; 
+        }
+
+        .non-hit {
+            color: transparent;
+            pointer-events: none;
+        }
+
+        /* Invisible clickable areas */
+        .home-link-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            padding-top: 20px; 
+        }
+
+        .hit-box {
+            display: inline-block;
+            cursor: pointer;
+            position: relative;
+            color: transparent; 
+            pointer-events: auto;
+        }
+
+        /* Underline */
+        .hit-box::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 0;
+            width: 0;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .hit-box:hover::after {
+            width: 100%;
+        }
+
+        /* Tab Indicator Logic */
+        .tab-indicator {
+            position: absolute;
+            top: 20%; 
+            left: 50%; 
+            transform: translateX(-50%) translateY(-10px); 
+            padding: 10px 24px;
+            background: rgba(242, 242, 247, 0.95); 
+            backdrop-filter: blur(10px);
+            color: #1C1C1E; 
+            font-size: 20px; 
+            font-weight: 800;
+            border-radius: 16px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .tab-indicator.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0); 
+        }
+
+        .sub-headline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 30px;
+            text-align: center;
+            margin-top: 0;
+            color: rgba(28, 28, 30, 0.45);
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            pointer-events: none;
+        }
+
+        @media (max-width: 760px) {
+            .meta-square-wrapper {
+                width: 92vw;
+                height: 60vw;
+                border-radius: 32px;
+            }
+            .cutout-text { font-size: 12vw; }
+            .home-link-area { padding: 8vw; }
+            .sub-headline {
+                font-size: 3.6vw;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col aws-gradient-bg">
+
+    <!-- Navigation Bar (iOS Segmented Control) -->
+    <div id="main-nav-container" class="sticky top-4 z-50 flex justify-center mb-10 transition-all duration-300">
+        <div class="bg-[#E5E5EA]/80 backdrop-blur-md p-1 rounded-lg inline-flex shadow-sm overflow-x-auto max-w-full border border-white/20">
+            <button id="nav-descriptive" class="px-5 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black">
+                Descriptive
+            </button>
+            <button id="nav-inferential" class="px-5 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 bg-white shadow-sm text-black">
+                Inferential
+            </button>
+            <button id="nav-predictive" class="px-5 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black">
+                Predictive
+            </button>
         </div>
-        <div class="flex gap-4">
-            <div id="page-switcher" class="segmented-control">
-                <button class="segmented-item active" data-page="finder">Method Finder</button>
-                <button class="segmented-item" data-page="glossary">Full Glossary</button>
-            </div>
-        </div>
-    </nav>
+    </div>
 
     <main class="flex-grow w-full">
 
-        <!-- PAGE 1: METHOD FINDER -->
-        <div id="page-finder" class="page-view">
+        <!-- PAGE 1: DESCRIPTIVE ANALYSIS -->
+        <div id="page-descriptive" class="page-view hidden">
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-slate-900 mb-4">Descriptive & Exploratory Analysis</h1>
+                    <p class="text-slate-600 max-w-3xl mx-auto">
+                        Describe distributions, spot outliers, explore relationships, and discover structure — without strong population assumptions.
+                    </p>
+                </div>
+
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-slate-900">Methods</h2>
+                    <div class="text-sm text-slate-500">Each card includes: Method, Function, Example, R code</div>
+                </div>
+
+                <div id="descriptive-grid" class="kanban-grid"></div>
+            </section>
+        </div>
+
+        <!-- PAGE 2: INFERENTIAL ANALYSIS (OLD FINDER) -->
+        <div id="page-inferential" class="page-view block">
             <section class="hero-bg">
                 <div class="max-w-4xl mx-auto px-4">
-                    <h1 class="hero-title">Find the right Statistical Method</h1>
+                    <h1 class="hero-title text-center text-4xl font-bold mb-8 mt-4 text-slate-900">Inferential Analysis</h1>
                     
                     <div class="pill-input-container">
                         <textarea id="ai-description" class="pill-textarea" placeholder="Describe your study design (e.g., 'Compare blood pressure before/after meds')"></textarea>
@@ -40,28 +247,23 @@
                     </div>
 
                     <div class="segmented-control-container">
-                        <span class="segmented-label">Objective</span>
+                        <span class="segmented-label text-slate-500">Objective</span>
                         <div id="filter-objective" class="segmented-control">
                             <button class="segmented-item active" data-group="objective" data-value="all">Any</button>
-                            <button class="segmented-item" data-group="objective" data-value="Compare">Compare Differences</button>
-                            <button class="segmented-item" data-group="objective" data-value="Associate">Find Associations</button>
-                            <button class="segmented-item" data-group="objective" data-value="Predict">Predict Outcomes</button>
-                            <button class="segmented-item" data-group="objective" data-value="SingleGroup">Single Group</button>
-                            <button class="segmented-item" data-group="objective" data-value="Reduction">Data Reduction</button>
+                            <button class="segmented-item" data-group="objective" data-value="Compare">Compare</button>
+                            <button class="segmented-item" data-group="objective" data-value="Associate">Associate</button>
                         </div>
-                        <button class="info-btn" title="What are you trying to achieve?">i</button>
                     </div>
 
                     <div class="segmented-control-container">
                         <span class="segmented-label">Outcome</span>
                         <div id="filter-outcome" class="segmented-control">
                             <button class="segmented-item active" data-group="outcome_type" data-value="all">Any</button>
-                            <button class="segmented-item" data-group="outcome_type" data-value="Continuous">Continuous & Normal</button>
-                            <button class="segmented-item" data-group="outcome_type" data-value="Ordinal">Ordinal / Non-Normal</button>
-                            <button class="segmented-item" data-group="outcome_type" data-value="Binary">Binary (2 cat)</button>
-                            <button class="segmented-item" data-group="outcome_type" data-value="Multinomial">Multinomial (3+ cat)</button>
+                            <button class="segmented-item" data-group="outcome_type" data-value="Continuous">Continuous</button>
+                            <button class="segmented-item" data-group="outcome_type" data-value="Ordinal">Ordinal</button>
+                            <button class="segmented-item" data-group="outcome_type" data-value="Binary">Binary</button>
+                            <button class="segmented-item" data-group="outcome_type" data-value="Multinomial">Multinomial</button>
                         </div>
-                        <button class="info-btn" title="Data type of your result (DV)">i</button>
                     </div>
 
                     <div class="segmented-control-container">
@@ -70,20 +272,17 @@
                             <button class="segmented-item active" data-group="counts" data-value="all">Any</button>
                             <button class="segmented-item" data-group="counts" data-value="1">1</button>
                             <button class="segmented-item" data-group="counts" data-value="2">2</button>
-                            <button class="segmented-item" data-group="counts" data-value="3+">3 or more</button>
+                            <button class="segmented-item" data-group="counts" data-value="3+">3+</button>
                         </div>
-                        <button class="info-btn" title="Number of groups or predictors">i</button>
                     </div>
 
                     <div id="container-relationship" class="segmented-control-container">
-                        <span class="segmented-label">Relationship</span>
+                        <span class="segmented-label">Rel.</span>
                         <div id="filter-relationship" class="segmented-control">
                             <button class="segmented-item active" data-group="relationship" data-value="all">Any</button>
-                            <button class="segmented-item" data-group="relationship" data-value="Independent">Independent</button>
-                            <button class="segmented-item" data-group="relationship" data-value="Paired">Paired / Repeated</button>
-                            <button class="segmented-item" data-group="relationship" data-value="NA">Not Applicable</button>
+                            <button class="segmented-item" data-group="relationship" data-value="Independent">Indep.</button>
+                            <button class="segmented-item" data-group="relationship" data-value="Paired">Paired</button>
                         </div>
-                        <button class="info-btn" title="Are samples from same or different subjects?">i</button>
                     </div>
 
                     <div id="ai-reasoning-container" class="hidden mt-8 p-6 glass-panel rounded-2xl max-w-2xl mx-auto border border-blue-100">
@@ -93,35 +292,53 @@
             </section>
 
             <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div id="result-count" class="text-lg font-bold text-slate-900 mb-8">Showing matching methods...</div>
+                <div id="result-count" class="text-lg font-bold text-slate-900 mb-8">Methods found:</div>
                 <div id="finder-results" class="kanban-grid"></div>
             </section>
         </div>
 
-        <!-- PAGE 2: FULL GLOSSARY -->
-        <div id="page-glossary" class="page-view hidden">
-            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <div class="mb-12 text-center max-w-2xl mx-auto">
-                    <h2 class="text-4xl font-bold text-slate-900 mb-4">Full Method Glossary</h2>
-                    <p class="text-slate-600">Browse the complete dictionary of statistical methods. Search by test name, R function, or keyword.</p>
-                    
-                    <div class="mt-8 relative max-w-lg mx-auto">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </span>
-                        <input type="text" id="search-input" placeholder="Search methods, keywords..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm">
-                    </div>
+        <!-- PAGE 3: PREDICTIVE ANALYSIS -->
+        <div id="page-predictive" class="page-view hidden">
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-slate-900 mb-4">Predictive & Causal</h1>
+                    <p class="text-slate-600">Regression, Machine Learning, and Causal Inference methods.</p>
                 </div>
-                <div id="full-glossary-grid" class="kanban-grid"></div>
+                <div class="p-12 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl">
+                    Coming Soon: Regression & ML Models
+                </div>
             </section>
         </div>
 
     </main>
 
     <footer class="bg-white border-t border-gray-200 py-8 text-center text-sm text-slate-500">
-        <p>StatFinder Pro. Built with iOS Design Principles & Gemini AI.</p>
+        <p>StatFinder Pro.</p>
     </footer>
 
     <script type="module" src="./assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabIndicator = document.getElementById('tab-indicator');
+            const tabLabel = document.getElementById('tab-label');
+            const boxes = document.querySelectorAll('.hit-box');
+
+            boxes.forEach(box => {
+                box.addEventListener('click', () => {
+                    const target = box.dataset.target;
+                    if (window.switchPage) window.switchPage(target);
+                });
+
+                box.addEventListener('mouseenter', () => {
+                    tabLabel.textContent = box.dataset.label;
+                    tabIndicator.classList.add('active');
+                });
+
+                box.addEventListener('mouseleave', () => {
+                    tabIndicator.classList.remove('active');
+                });
+            });
+        });
+    </script>
 </body>
 </html>
