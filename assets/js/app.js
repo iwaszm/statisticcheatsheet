@@ -1,5 +1,6 @@
-import { statsData } from './data/statsData.js';
 import { descriptiveData } from './data/descriptiveData.js';
+import { inferentialData } from './data/inferentialData.js';
+import { predictiveData } from './data/predictiveData.js';
 
 const escapeAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
@@ -226,8 +227,6 @@ const main = () => {
   const descriptiveGrid = document.getElementById('descriptive-grid');
   const predictiveGrid = document.getElementById('predictive-grid');
   const predictiveCount = document.getElementById('predictive-count');
-  const inferentialData = statsData.filter(item => item.objective !== 'Predict');
-  const predictiveData = statsData.filter(item => item.objective === 'Predict');
 
   // Page Switcher Logic
   const switchPage = (targetId) => {
