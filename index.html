@@ -236,27 +236,15 @@
             <section class="hero-bg">
                 <div class="max-w-4xl mx-auto px-4">
                     <h1 class="hero-title text-center text-4xl font-bold mb-8 mt-4 text-slate-900">Inferential Analysis</h1>
-                    
-                    <div class="pill-input-container">
-                        <textarea id="ai-description" class="pill-textarea" placeholder="Describe your study design (e.g., 'Compare blood pressure before/after meds')"></textarea>
-                        <button id="btn-ai" class="pill-btn-ai">
-                            <span id="ai-btn-text">Analyze</span>
-                            <div id="ai-spinner" class="loader hidden"></div>
-                        </button>
-                        <p id="ai-error" class="hidden text-xs text-red-600 mt-2 font-medium text-center"></p>
+                    <div class="max-w-3xl mx-auto text-center mb-10">
+                        <p class="text-slate-600 text-base leading-7">
+                            Use these filters to narrow inferential methods by outcome type, number of samples, and whether observations are independent or dependent.
+                            This view is intended for hypothesis testing, group comparisons, association testing, and single-group inference.
+                        </p>
                     </div>
 
-                    <div class="segmented-control-container">
-                        <span class="segmented-label text-slate-500">Objective</span>
-                        <div id="filter-objective" class="segmented-control">
-                            <button class="segmented-item active" data-group="objective" data-value="all">Any</button>
-                            <button class="segmented-item" data-group="objective" data-value="Compare">Compare</button>
-                            <button class="segmented-item" data-group="objective" data-value="Associate">Associate</button>
-                        </div>
-                    </div>
-
-                    <div class="segmented-control-container">
-                        <span class="segmented-label">Outcome</span>
+                    <div class="segmented-control-container inferential-filter-row">
+                        <span class="segmented-label">Outcome Nature</span>
                         <div id="filter-outcome" class="segmented-control">
                             <button class="segmented-item active" data-group="outcome_type" data-value="all">Any</button>
                             <button class="segmented-item" data-group="outcome_type" data-value="Continuous">Continuous</button>
@@ -266,28 +254,27 @@
                         </div>
                     </div>
 
-                    <div class="segmented-control-container">
-                        <span class="segmented-label">Counts</span>
-                        <div id="filter-counts" class="segmented-control">
-                            <button class="segmented-item active" data-group="counts" data-value="all">Any</button>
-                            <button class="segmented-item" data-group="counts" data-value="1">1</button>
-                            <button class="segmented-item" data-group="counts" data-value="2">2</button>
-                            <button class="segmented-item" data-group="counts" data-value="3+">3+</button>
+                    <div class="inferential-filter-pair">
+                        <div class="segmented-control-container">
+                            <span class="segmented-label">N Samples</span>
+                            <div id="filter-counts" class="segmented-control">
+                                <button class="segmented-item active" data-group="counts" data-value="all">Any</button>
+                                <button class="segmented-item" data-group="counts" data-value="1">1</button>
+                                <button class="segmented-item" data-group="counts" data-value="2">2</button>
+                                <button class="segmented-item" data-group="counts" data-value="3+">3+</button>
+                            </div>
+                        </div>
+
+                        <div id="container-relationship" class="segmented-control-container">
+                            <span class="segmented-label">Dep/Indep</span>
+                            <div id="filter-relationship" class="segmented-control">
+                                <button class="segmented-item active" data-group="relationship" data-value="all">Any</button>
+                                <button class="segmented-item" data-group="relationship" data-value="Independent">Indep.</button>
+                                <button class="segmented-item" data-group="relationship" data-value="Paired">Dep.</button>
+                            </div>
                         </div>
                     </div>
 
-                    <div id="container-relationship" class="segmented-control-container">
-                        <span class="segmented-label">Rel.</span>
-                        <div id="filter-relationship" class="segmented-control">
-                            <button class="segmented-item active" data-group="relationship" data-value="all">Any</button>
-                            <button class="segmented-item" data-group="relationship" data-value="Independent">Indep.</button>
-                            <button class="segmented-item" data-group="relationship" data-value="Paired">Paired</button>
-                        </div>
-                    </div>
-
-                    <div id="ai-reasoning-container" class="hidden mt-8 p-6 glass-panel rounded-2xl max-w-2xl mx-auto border border-blue-100">
-                        <p id="ai-reasoning" class="text-sm text-slate-800 leading-relaxed italic text-center"></p>
-                    </div>
                 </div>
             </section>
 
@@ -302,11 +289,15 @@
             <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div class="text-center mb-12">
                     <h1 class="text-4xl font-bold text-slate-900 mb-4">Predictive & Causal</h1>
-                    <p class="text-slate-600">Regression, Machine Learning, and Causal Inference methods.</p>
+                    <p class="text-slate-600">Copied predictive methods with ML task tags for quick model selection.</p>
                 </div>
-                <div class="p-12 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl">
-                    Coming Soon: Regression & ML Models
+
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-slate-900">Methods</h2>
+                    <div id="predictive-count" class="text-sm text-slate-500">Showing predictive methods...</div>
                 </div>
+
+                <div id="predictive-grid" class="kanban-grid"></div>
             </section>
         </div>
 

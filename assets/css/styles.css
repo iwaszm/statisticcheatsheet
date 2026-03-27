@@ -116,6 +116,22 @@ body {
     gap: 8px;
 }
 
+.inferential-filter-row {
+    margin-bottom: 1rem;
+}
+
+.inferential-filter-pair {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.inferential-filter-pair .segmented-control-container {
+    margin-bottom: 1rem;
+}
+
 .segmented-label {
     font-size: 0.8rem;
     font-weight: 600;
