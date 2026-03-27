@@ -238,43 +238,10 @@
                     <h1 class="hero-title text-center text-4xl font-bold mb-8 mt-4 text-slate-900">Inferential Analysis</h1>
                     <div class="max-w-3xl mx-auto text-center mb-10">
                         <p class="text-slate-600 text-base leading-7">
-                            Use these filters to narrow inferential methods by outcome type, number of samples, and whether observations are independent or dependent.
-                            This view is intended for hypothesis testing, group comparisons, association testing, and single-group inference.
+                            Browse hypothesis tests and association methods for group comparisons, paired designs, single-group inference, and correlation-style analysis.
+                            Each card shows the method family together with sample-count and dependency context.
                         </p>
                     </div>
-
-                    <div class="segmented-control-container inferential-filter-row">
-                        <span class="segmented-label">Outcome Nature</span>
-                        <div id="filter-outcome" class="segmented-control">
-                            <button class="segmented-item active" data-group="outcome_type" data-value="all">Any</button>
-                            <button class="segmented-item" data-group="outcome_type" data-value="Continuous">Continuous</button>
-                            <button class="segmented-item" data-group="outcome_type" data-value="Ordinal">Ordinal</button>
-                            <button class="segmented-item" data-group="outcome_type" data-value="Binary">Binary</button>
-                            <button class="segmented-item" data-group="outcome_type" data-value="Multinomial">Multinomial</button>
-                        </div>
-                    </div>
-
-                    <div class="inferential-filter-pair">
-                        <div class="segmented-control-container">
-                            <span class="segmented-label">N Samples</span>
-                            <div id="filter-counts" class="segmented-control">
-                                <button class="segmented-item active" data-group="counts" data-value="all">Any</button>
-                                <button class="segmented-item" data-group="counts" data-value="1">1</button>
-                                <button class="segmented-item" data-group="counts" data-value="2">2</button>
-                                <button class="segmented-item" data-group="counts" data-value="3+">3+</button>
-                            </div>
-                        </div>
-
-                        <div id="container-relationship" class="segmented-control-container">
-                            <span class="segmented-label">Dep/Indep</span>
-                            <div id="filter-relationship" class="segmented-control">
-                                <button class="segmented-item active" data-group="relationship" data-value="all">Any</button>
-                                <button class="segmented-item" data-group="relationship" data-value="Independent">Indep.</button>
-                                <button class="segmented-item" data-group="relationship" data-value="Paired">Dep.</button>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </section>
 
