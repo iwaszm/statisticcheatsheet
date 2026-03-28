@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StatFinder Pro</title>
+    <title>StatistiCS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="./assets/css/styles.css" />
     <style>
@@ -195,73 +195,146 @@
 </head>
 <body class="antialiased min-h-screen flex flex-col aws-gradient-bg">
 
-    <!-- Navigation Bar (iOS Segmented Control) -->
-    <div id="main-nav-container" class="sticky top-4 z-50 flex justify-center mb-10 transition-all duration-300">
-        <div class="bg-[#E5E5EA]/80 backdrop-blur-md p-1 rounded-lg inline-flex shadow-sm overflow-x-auto max-w-full border border-white/20">
-            <button id="nav-descriptive" class="px-5 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black">
-                Descriptive
-            </button>
-            <button id="nav-inferential" class="px-5 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 bg-white shadow-sm text-black">
-                Inferential
-            </button>
-            <button id="nav-predictive" class="px-5 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black">
-                Predictive
-            </button>
+    <!-- Top Navigation -->
+    <header id="main-nav-container" class="sticky top-4 z-50 mb-10 transition-all duration-300 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto bg-white/75 backdrop-blur-md border border-white/30 rounded-2xl shadow-sm px-4 py-3">
+            <div class="grid grid-cols-[auto_1fr_auto] items-center gap-4">
+                <div class="text-base sm:text-lg font-black tracking-tight text-slate-900 justify-self-start whitespace-nowrap">StatistiCS</div>
+                <div class="overflow-x-auto justify-self-center">
+                    <div class="nav-segmented-control">
+                    <button id="nav-start" class="nav-segmented-item px-4 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black whitespace-nowrap">
+                        Start
+                    </button>
+                    <span class="nav-segmented-divider" aria-hidden="true"></span>
+                    <button id="nav-prepare" class="nav-segmented-item px-4 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black whitespace-nowrap">
+                        Prepare
+                    </button>
+                    <button id="nav-descriptive" class="nav-segmented-item px-4 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black whitespace-nowrap">
+                        Descriptive
+                    </button>
+                    <button id="nav-inferential" class="nav-segmented-item px-4 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 bg-white shadow-sm text-black whitespace-nowrap">
+                        Inferential
+                    </button>
+                    <button id="nav-predictive" class="nav-segmented-item px-4 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black whitespace-nowrap">
+                        Prediction
+                    </button>
+                </div>
+                </div>
+                <div class="nav-segmented-control justify-self-end">
+                    <button id="code-lang-r" class="nav-segmented-item px-3 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 bg-white shadow-sm text-black whitespace-nowrap">
+                        R
+                    </button>
+                    <button id="code-lang-py" class="nav-segmented-item px-3 py-1.5 rounded-md text-sm font-semibold transition-all duration-200 text-[#8E8E93] hover:text-black whitespace-nowrap">
+                        Py
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
+    </header>
 
     <main class="flex-grow w-full">
 
-        <!-- PAGE 1: DESCRIPTIVE ANALYSIS -->
-        <div id="page-descriptive" class="page-view hidden">
+        <!-- PAGE 0: START (BLANK) -->
+        <div id="page-start" class="page-view block">
             <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div class="text-center mb-12">
-                    <h1 class="text-4xl font-bold text-slate-900 mb-4">Descriptive & Exploratory Analysis</h1>
-                    <p class="text-slate-600 max-w-3xl mx-auto">
-                        Describe distributions, spot outliers, explore relationships, and discover structure — without strong population assumptions.
-                    </p>
+                <div class="page-intro">
+                    <h1 class="text-4xl font-bold text-slate-900 mb-4">Start</h1>
+                    <div class="page-subtitle">
+                        <p>Pick a workflow stage above to move from preparation to exploration, inference, and prediction.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- PAGE 0.5: PREPARE -->
+        <div id="page-prepare" class="page-view hidden">
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="page-intro">
+                    <h1 class="text-4xl font-bold text-slate-900 mb-4">Preparation & Segmentation</h1>
+                    <div class="page-subtitle">
+                        <p>Reduce dimensions, surface latent structure, and segment observations before downstream modeling or reporting.</p>
+                    </div>
                 </div>
 
                 <div class="mb-6 flex items-center justify-between">
                     <h2 class="text-xl font-bold text-slate-900">Methods</h2>
-                    <div class="text-sm text-slate-500">Each card includes: Method, Function, Example, R code</div>
+                    <div id="prepare-count" class="text-sm text-slate-500">Showing methods...</div>
+                </div>
+
+                <div id="prepare-grid" class="kanban-grid"></div>
+            </section>
+        </div>
+
+        <!-- PAGE 1: DESCRIPTIVE ANALYSIS -->
+        <div id="page-descriptive" class="page-view hidden">
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="page-intro">
+                    <h1 class="text-4xl font-bold text-slate-900 mb-4">Descriptive & Exploratory Analysis</h1>
+                    <div class="page-subtitle">
+                        <p>Describe distributions, spot outliers, explore relationships, and discover structure — without strong population assumptions.</p>
+                    </div>
+                </div>
+
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-slate-900">Methods</h2>
+                    <div id="descriptive-count" class="text-sm text-slate-500">Showing methods...</div>
                 </div>
 
                 <div id="descriptive-grid" class="kanban-grid"></div>
             </section>
         </div>
 
-        <!-- PAGE 2: INFERENTIAL ANALYSIS (OLD FINDER) -->
-        <div id="page-inferential" class="page-view block">
-            <section class="hero-bg">
-                <div class="max-w-4xl mx-auto px-4">
-                    <h1 class="hero-title text-center text-4xl font-bold mb-8 mt-4 text-slate-900">Inferential Analysis</h1>
-                    <div class="max-w-3xl mx-auto text-center mb-10">
+        <!-- PAGE 2: INFERENTIAL ANALYSIS -->
+        <div id="page-inferential" class="page-view hidden">
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="page-intro">
+                    <h1 class="text-4xl font-bold text-slate-900 mb-4">Inferential Analysis</h1>
+                    <div class="page-subtitle">
                         <p class="text-slate-600 text-base leading-7">
                             Browse hypothesis tests and association methods for group comparisons, paired designs, single-group inference, and correlation-style analysis.
                             Each card shows the method family together with sample-count and dependency context.
                         </p>
                     </div>
                 </div>
-            </section>
-
-            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div id="result-count" class="text-lg font-bold text-slate-900 mb-8">Methods found:</div>
-                <div id="finder-results" class="kanban-grid"></div>
+                <div class="mb-6 flex items-center justify-between gap-4 flex-wrap">
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <div class="filter-segmented-container mb-0">
+                            <span class="filter-segmented-label">Groups</span>
+                            <div class="filter-segmented-control">
+                                <button type="button" class="filter-segmented-item active inferential-filter-btn" data-filter-group="sampleN" data-filter-value="any">Any</button>
+                                <button type="button" class="filter-segmented-item inferential-filter-btn" data-filter-group="sampleN" data-filter-value="1">1</button>
+                                <button type="button" class="filter-segmented-item inferential-filter-btn" data-filter-group="sampleN" data-filter-value="2">2</button>
+                                <button type="button" class="filter-segmented-item inferential-filter-btn" data-filter-group="sampleN" data-filter-value="3+">3+</button>
+                            </div>
+                        </div>
+                        <div class="filter-segmented-container mb-0">
+                            <span class="filter-segmented-label">Relation</span>
+                            <div class="filter-segmented-control">
+                                <button type="button" class="filter-segmented-item active inferential-filter-btn" data-filter-group="sampleR" data-filter-value="any">Any</button>
+                                <button type="button" class="filter-segmented-item inferential-filter-btn" data-filter-group="sampleR" data-filter-value="dep">Dep</button>
+                                <button type="button" class="filter-segmented-item inferential-filter-btn" data-filter-group="sampleR" data-filter-value="indep">Indep</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="result-count" class="text-sm text-slate-500">Showing methods...</div>
+                </div>
+                <div id="inferential-grid" class="kanban-grid"></div>
             </section>
         </div>
 
         <!-- PAGE 3: PREDICTIVE ANALYSIS -->
         <div id="page-predictive" class="page-view hidden">
             <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div class="text-center mb-12">
+                <div class="page-intro">
                     <h1 class="text-4xl font-bold text-slate-900 mb-4">Predictive & Causal</h1>
-                    <p class="text-slate-600">Copied predictive methods with ML task tags for quick model selection.</p>
+                    <div class="page-subtitle">
+                        <p>Copied predictive methods with ML task tags for quick model selection.</p>
+                    </div>
                 </div>
 
                 <div class="mb-6 flex items-center justify-between">
                     <h2 class="text-xl font-bold text-slate-900">Methods</h2>
-                    <div id="predictive-count" class="text-sm text-slate-500">Showing predictive methods...</div>
+                    <div id="predictive-count" class="text-sm text-slate-500">Showing methods...</div>
                 </div>
 
                 <div id="predictive-grid" class="kanban-grid"></div>
@@ -271,7 +344,7 @@
     </main>
 
     <footer class="bg-white border-t border-gray-200 py-8 text-center text-sm text-slate-500">
-        <p>StatFinder Pro.</p>
+        <p>StatistiCS &copy; 2026</p>
     </footer>
 
     <script type="module" src="./assets/js/app.js"></script>

@@ -1,10 +1,16 @@
 import { descriptiveData } from './data/descriptiveData.js';
 import { inferentialData } from './data/inferentialData.js';
 import { predictiveData } from './data/predictiveData.js';
+import { prepareData } from './data/prepareData.js';
 
 const escapeAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
 const formatMetaValue = (value, fallback = 'NA') => String(value || fallback).toUpperCase();
+const hasMeaningfulValue = (value) => value !== undefined && value !== null && String(value).trim() !== '' && String(value).toLowerCase() !== 'na';
+const renderMetaTag = (value, className) => {
+  if (!hasMeaningfulValue(value)) return '';
+  return `<div class="${className}">${formatMetaValue(value)}</div>`;
+};
 
 const generateCodeBlockHTML = (label, code) => {
   const safeCode = code || '# Not available';
@@ -15,21 +21,23 @@ const generateCodeBlockHTML = (label, code) => {
         <span class="text-[10px] font-bold uppercase tracking-tight text-slate-400">${label}</span>
       </div>
       <code class="block p-2 pt-1 text-[11px] font-mono text-blue-700 overflow-x-auto selection:bg-blue-100">${safeCode}</code>
-      <button data-copy="${codeAttr}" class="btn-copy absolute top-1.5 right-1.5 p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-white transition-all opacity-0 group-hover/code:opacity-100 shadow-sm" title="Copy Code">
+      <button data-copy="${codeAttr}" class="btn-copy absolute top-1.5 right-1.5 p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-white transition-all opacity-70 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 shadow-sm" title="Copy Code">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
       </button>
     </div>
   `;
 };
 
-const generateDescriptiveCardHTML = (item) => `
+const getCodeByLanguage = (item, lang) => (lang === 'py' ? item.codePy : item.codeR);
+
+const generateStandardCardHTML = (item, lang, metaHTML = '') => `
   <div class="kanban-card aws-card h-full flex flex-col p-6 relative overflow-visible group cursor-default">
     <div class="relative z-10 flex flex-wrap gap-1.5 mb-1">
-      <div class="inline-block bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 rounded border border-blue-100 uppercase tracking-tight">${formatMetaValue(item.type)}</div>
+      ${metaHTML}
     </div>
 
     <div class="mb-2 min-w-0 relative z-10">
-      <h4 class="text-xl font-bold text-slate-900 truncate leading-tight tracking-tight" title="${item.method}">
+      <h4 class="text-[clamp(1rem,1.8vw,1.25rem)] font-bold text-slate-900 leading-tight tracking-tight break-words" title="${item.method}">
         ${item.method}
       </h4>
     </div>
@@ -44,66 +52,41 @@ const generateDescriptiveCardHTML = (item) => `
     </div>
 
     <div class="mt-1 relative z-10 space-y-3">
-      ${generateCodeBlockHTML('R', item.codeR)}
+      ${generateCodeBlockHTML(lang === 'py' ? 'PY' : 'R', getCodeByLanguage(item, lang))}
     </div>
   </div>
 `;
 
-const generateInferentialCardHTML = (item) => `
-  <div class="kanban-card aws-card h-full flex flex-col p-6 relative overflow-visible group cursor-default">
-    <div class="relative z-10 flex flex-wrap gap-1.5 mb-1">
-      <div class="inline-block bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 rounded border border-blue-100 uppercase tracking-tight">${formatMetaValue(item.type)}</div>
-      <div class="inline-block bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 rounded border border-slate-100 uppercase tracking-tight">${formatMetaValue(item.sampleN)}</div>
-      <div class="inline-block bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 rounded border border-slate-100 uppercase tracking-tight">${formatMetaValue(item.sampleR)}</div>
-    </div>
+const generateDescriptiveCardHTML = (item, lang) => generateStandardCardHTML(
+  item,
+  lang,
+  renderMetaTag(item.type, 'inline-block bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 rounded border border-blue-100 uppercase tracking-tight')
+);
 
-    <div class="mb-2 min-w-0 relative z-10">
-      <h4 class="text-xl font-bold text-slate-900 truncate leading-tight tracking-tight" title="${item.method}">
-        ${item.method}
-      </h4>
-    </div>
+const generatePrepareCardHTML = (item, lang) => generateStandardCardHTML(
+  item,
+  lang,
+  [
+    renderMetaTag(item.type, 'inline-block bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 rounded border border-amber-100 uppercase tracking-tight'),
+    renderMetaTag(item.nature, 'inline-block bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 rounded border border-slate-100 uppercase tracking-tight')
+  ].join('')
+);
 
-    <div class="flex-grow text-[14px] leading-relaxed text-slate-600 relative z-10">
-      <div class="mb-3 font-normal">
-        ${item.function}
-      </div>
-      <div class="mb-4 pl-3 border-l-2 border-slate-200/60 py-1">
-        <p class="italic text-slate-400 text-[13px]">"${item.example}"</p>
-      </div>
-    </div>
+const generateInferentialCardHTML = (item, lang) => generateStandardCardHTML(
+  item,
+  lang,
+  [
+    renderMetaTag(item.type, 'inline-block bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 rounded border border-blue-100 uppercase tracking-tight'),
+    renderMetaTag(item.sampleN, 'inline-block bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 rounded border border-slate-100 uppercase tracking-tight'),
+    renderMetaTag(item.sampleR, 'inline-block bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 rounded border border-slate-100 uppercase tracking-tight')
+  ].join('')
+);
 
-    <div class="mt-1 relative z-10 space-y-3">
-      ${generateCodeBlockHTML('R', item.codeR)}
-    </div>
-  </div>
-`;
-
-const generatePredictiveCardHTML = (item) => `
-  <div class="kanban-card aws-card h-full flex flex-col p-6 relative overflow-visible group cursor-default">
-    <div class="relative z-10 flex flex-wrap gap-1.5 mb-1">
-      <div class="inline-block bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 rounded border border-blue-100 uppercase tracking-tight">${formatMetaValue(item.type)}</div>
-    </div>
-
-    <div class="mb-2 min-w-0 relative z-10">
-      <h4 class="text-xl font-bold text-slate-900 truncate leading-tight tracking-tight" title="${item.method}">
-        ${item.method}
-      </h4>
-    </div>
-
-    <div class="flex-grow text-[14px] leading-relaxed text-slate-600 relative z-10">
-      <div class="mb-3 font-normal">
-        ${item.function}
-      </div>
-      <div class="mb-4 pl-3 border-l-2 border-slate-200/60 py-1">
-        <p class="italic text-slate-400 text-[13px]">"${item.example}"</p>
-      </div>
-    </div>
-
-    <div class="mt-1 relative z-10 space-y-3">
-      ${generateCodeBlockHTML('R', item.codeR)}
-    </div>
-  </div>
-`;
+const generatePredictiveCardHTML = (item, lang) => generateStandardCardHTML(
+  item,
+  lang,
+  renderMetaTag(item.type, 'inline-block bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 rounded border border-blue-100 uppercase tracking-tight')
+);
 
 const copyToClipboard = async (text, btnElement) => {
   const originalHTML = btnElement.innerHTML;
@@ -125,7 +108,7 @@ const copyToClipboard = async (text, btnElement) => {
   }
 };
 
-const renderResults = (container, dataArray) => {
+const renderResults = (container, dataArray, lang) => {
   if (!container) return;
   if (dataArray.length === 0) {
     container.innerHTML = `
@@ -137,27 +120,49 @@ const renderResults = (container, dataArray) => {
         <p class="text-sm mt-1">Try resetting filters or broadening your search.</p>
       </div>`;
   } else {
-    container.innerHTML = dataArray.map(generateInferentialCardHTML).join('');
+    container.innerHTML = dataArray.map(item => generateInferentialCardHTML(item, lang)).join('');
   }
 };
 
-const renderDescriptive = (container, dataArray) => {
+const renderDescriptive = (container, dataArray, lang) => {
   if (!container) return;
-  container.innerHTML = dataArray.map(generateDescriptiveCardHTML).join('');
+  container.innerHTML = dataArray.map(item => generateDescriptiveCardHTML(item, lang)).join('');
 };
 
-const renderPredictive = (container, dataArray, countEl) => {
+const renderPrepare = (container, dataArray, lang) => {
   if (!container) return;
-  container.innerHTML = dataArray.map(generatePredictiveCardHTML).join('');
-  if (countEl) countEl.innerText = `Showing ${dataArray.length} predictive method(s)`;
+  container.innerHTML = dataArray.map(item => generatePrepareCardHTML(item, lang)).join('');
 };
+
+const renderPredictive = (container, dataArray, countEl, lang) => {
+  if (!container) return;
+  container.innerHTML = dataArray.map(item => generatePredictiveCardHTML(item, lang)).join('');
+  if (countEl) countEl.innerText = `Showing ${dataArray.length} method(s)`;
+};
+
+const filterInferentialData = (dataArray, filters) => dataArray.filter((item) => {
+  const matchesSampleN = filters.sampleN === 'any' || item.sampleN === filters.sampleN;
+  const matchesSampleR = filters.sampleR === 'any' || item.sampleR === filters.sampleR;
+  return matchesSampleN && matchesSampleR;
+});
 
 const main = () => {
-  const finderContainer = document.getElementById('finder-results');
+  const inferentialGrid = document.getElementById('inferential-grid');
   const resultCount = document.getElementById('result-count');
+  const prepareGrid = document.getElementById('prepare-grid');
+  const prepareCount = document.getElementById('prepare-count');
   const descriptiveGrid = document.getElementById('descriptive-grid');
+  const descriptiveCount = document.getElementById('descriptive-count');
   const predictiveGrid = document.getElementById('predictive-grid');
   const predictiveCount = document.getElementById('predictive-count');
+  const codeLangR = document.getElementById('code-lang-r');
+  const codeLangPy = document.getElementById('code-lang-py');
+  const inferentialFilterButtons = document.querySelectorAll('.inferential-filter-btn');
+  let currentCodeLang = 'r';
+  const inferentialFilters = {
+    sampleN: 'any',
+    sampleR: 'any'
+  };
 
   // Page Switcher Logic
   const switchPage = (targetId) => {
@@ -171,7 +176,7 @@ const main = () => {
       }
 
       // Update Nav Buttons State
-      document.querySelectorAll('#main-nav-container button').forEach(btn => {
+      document.querySelectorAll('#main-nav-container button[id^="nav-"]').forEach(btn => {
           if(btn.id === `nav-${targetId}`) {
               btn.classList.add('bg-white', 'shadow-sm', 'text-black');
               btn.classList.remove('text-[#8E8E93]');
@@ -189,7 +194,7 @@ const main = () => {
   window.switchPage = switchPage;
 
   // Bind Nav Buttons
-  ['descriptive', 'inferential', 'predictive'].forEach(page => {
+  ['start', 'prepare', 'descriptive', 'inferential', 'predictive'].forEach(page => {
       const btn = document.getElementById(`nav-${page}`);
       if(btn) {
           btn.addEventListener('click', (e) => {
@@ -199,6 +204,68 @@ const main = () => {
       }
   });
 
+  const updateLanguageToggleUI = () => {
+    if (codeLangR) {
+      codeLangR.classList.toggle('bg-white', currentCodeLang === 'r');
+      codeLangR.classList.toggle('shadow-sm', currentCodeLang === 'r');
+      codeLangR.classList.toggle('text-black', currentCodeLang === 'r');
+      codeLangR.classList.toggle('text-[#8E8E93]', currentCodeLang !== 'r');
+    }
+    if (codeLangPy) {
+      codeLangPy.classList.toggle('bg-white', currentCodeLang === 'py');
+      codeLangPy.classList.toggle('shadow-sm', currentCodeLang === 'py');
+      codeLangPy.classList.toggle('text-black', currentCodeLang === 'py');
+      codeLangPy.classList.toggle('text-[#8E8E93]', currentCodeLang !== 'py');
+    }
+  };
+
+  const renderAllPages = () => {
+    const filteredInferentialData = filterInferentialData(inferentialData, inferentialFilters);
+    renderResults(inferentialGrid, filteredInferentialData, currentCodeLang);
+    renderPrepare(prepareGrid, prepareData, currentCodeLang);
+    renderDescriptive(descriptiveGrid, descriptiveData, currentCodeLang);
+    renderPredictive(predictiveGrid, predictiveData, predictiveCount, currentCodeLang);
+    if (prepareCount) prepareCount.innerText = `Showing ${prepareData.length} method(s)`;
+    if (resultCount) resultCount.innerText = `Showing ${filteredInferentialData.length} method(s)`;
+    if (descriptiveCount) descriptiveCount.innerText = `Showing ${descriptiveData.length} method(s)`;
+  };
+
+  inferentialFilterButtons.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const group = btn.dataset.filterGroup;
+      const value = btn.dataset.filterValue;
+      if (!group || !value) return;
+      inferentialFilters[group] = value;
+      inferentialFilterButtons.forEach((candidate) => {
+        if (candidate.dataset.filterGroup === group) {
+          candidate.classList.toggle('active', candidate === btn);
+        }
+      });
+      renderAllPages();
+    });
+  });
+
+  if (codeLangR) {
+    codeLangR.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentCodeLang === 'r') return;
+      currentCodeLang = 'r';
+      updateLanguageToggleUI();
+      renderAllPages();
+    });
+  }
+
+  if (codeLangPy) {
+    codeLangPy.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentCodeLang === 'py') return;
+      currentCodeLang = 'py';
+      updateLanguageToggleUI();
+      renderAllPages();
+    });
+  }
+
   document.addEventListener('click', (e) => {
     const btn = e.target.closest?.('.btn-copy');
     if (!btn) return;
@@ -207,13 +274,11 @@ const main = () => {
   });
 
   // Initial render
-  renderResults(finderContainer, inferentialData);
-  if (resultCount) resultCount.innerText = `Showing ${inferentialData.length} inferential method(s)`;
-  renderDescriptive(descriptiveGrid, descriptiveData);
-  renderPredictive(predictiveGrid, predictiveData, predictiveCount);
+  updateLanguageToggleUI();
+  renderAllPages();
 
   // Default view
-  switchPage('inferential');
+  switchPage('start');
 };
 
 document.addEventListener('DOMContentLoaded', main);
