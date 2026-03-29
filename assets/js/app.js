@@ -15,12 +15,13 @@ const renderMetaTag = (value, className) => {
 const generateCodeBlockHTML = (label, code) => {
   const safeCode = code || '# Not available';
   const codeAttr = escapeAttr(safeCode);
+  const languageClass = label === 'PY' ? 'code-lang-py' : 'code-lang-r';
   return `
-    <div class="code-snippet group/code relative bg-slate-100/50 rounded-lg border border-slate-200/20">
+    <div class="code-snippet ${languageClass} group/code relative bg-slate-100/50 rounded-lg border border-slate-200/20">
       <div class="flex items-center justify-between px-2 pt-2">
-        <span class="text-[10px] font-bold uppercase tracking-tight text-slate-400">${label}</span>
+        <span class="code-label text-[10px] font-bold uppercase tracking-tight text-slate-400">${label}</span>
       </div>
-      <code class="block p-2 pt-1 text-[11px] font-mono text-blue-700 overflow-x-auto selection:bg-blue-100">${safeCode}</code>
+      <code class="code-content block p-2 pt-1 text-[11px] font-mono text-blue-700 overflow-x-auto selection:bg-blue-100">${safeCode}</code>
       <button data-copy="${codeAttr}" class="btn-copy absolute top-1.5 right-1.5 p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-white transition-all opacity-70 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 shadow-sm" title="Copy Code">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
       </button>
