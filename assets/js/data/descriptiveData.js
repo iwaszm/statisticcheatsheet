@@ -1,8 +1,8 @@
 export const descriptiveData = [
-  // --- Group 1: General Descriptives (descr) ---
+  // --- Summary: quick first-look descriptors of center, spread, and overall scale ---
   {
     nature: 'na',
-    type: 'descr',
+    type: 'summary',
     method: 'Summary Statistics',
     function: 'Summarize center, spread, and overall distribution shape for numeric variables; default first look before modeling.',
     sampleN: 'na',
@@ -11,9 +11,11 @@ export const descriptiveData = [
     codeR: "summary(df)\nsd(df$height)\npsych::describe(df)",
     codePy: "df.describe(include='all')\ndf['height'].std()",
   },
+
+  // --- Distribution: shape, spread, and frequency patterns for numeric and categorical variables ---
   {
     nature: 'na',
-    type: 'descr',
+    type: 'distribution',
     method: 'Univariate Distribution (Histogram / Density)',
     function: 'Visualize the exact shape, central tendency, and spread of a single continuous variable.',
     sampleN: 'na',
@@ -24,7 +26,7 @@ export const descriptiveData = [
   },
   {
     nature: 'na',
-    type: 'descr',
+    type: 'distribution',
     method: 'Q-Q Plot / Normality Checks',
     function: 'Assess whether data or residuals look approximately normal using visual checks plus a formal test.',
     sampleN: 'na',
@@ -35,18 +37,7 @@ export const descriptiveData = [
   },
   {
     nature: 'na',
-    type: 'descr',
-    method: 'Outlier Detection (IQR / Robust Z-Score)',
-    function: 'Flag unusually extreme observations using simple robust rules before they distort summaries or models.',
-    sampleN: 'na',
-    sampleR: 'na',
-    example: 'Flag unusually high monthly electricity bills in a neighborhood.',
-    codeR: "boxplot.stats(df$electric_bill)$out\nrstatix::identify_outliers(df, electric_bill)\nwhich(abs(scale(df$electric_bill)) > 3)",
-    codePy: "q1, q3 = df['electric_bill'].quantile([0.25, 0.75])\noutliers = df[(df['electric_bill'] < q1 - 1.5*(q3-q1)) | (df['electric_bill'] > q3 + 1.5*(q3-q1))]",
-  },
-  {
-    nature: 'na',
-    type: 'descr',
+    type: 'distribution',
     method: 'Boxplot / Violin Plot',
     function: 'Visualize distribution shape, spread, and outliers across groups; useful for quick between-group exploratory comparison.',
     sampleN: 'na',
@@ -57,31 +48,7 @@ export const descriptiveData = [
   },
   {
     nature: 'na',
-    type: 'descr',
-    method: 'Missing Data Pattern Analysis',
-    function: 'Inspect where missingness occurs and whether it clusters by variable or record before imputation or modeling.',
-    sampleN: 'na',
-    sampleR: 'na',
-    example: 'Check if people systematically skipped the "income" question in a neighborhood survey.',
-    codeR: "naniar::vis_miss(survey_df)\ncolSums(is.na(survey_df))\nVIM::aggr(survey_df)",
-    codePy: "import missingno as msno\nmsno.matrix(survey_df)\nsurvey_df.isna().sum()\nmsno.heatmap(survey_df)",
-  },
-  {
-    nature: 'na',
-    type: 'descr',
-    method: 'Network Descriptive Statistics',
-    function: 'Summarize network topologies including degree distribution, node centrality, and community modularity.',
-    sampleN: 'na',
-    sampleR: 'na',
-    example: 'Find the most socially connected students (hubs) in a high school friendship network.',
-    codeR: "library(igraph)\ndeg <- degree(friend_graph, mode='all')\nbetw <- betweenness(friend_graph)\nplot(friend_graph, vertex.size=deg*2)",
-    codePy: "import networkx as nx\ndeg = dict(nx.degree(friend_graph))\nbetw = nx.betweenness_centrality(friend_graph)\nnx.draw(friend_graph, node_size=[v * 100 for v in deg.values()])",
-  },
-
-  // --- Group 2: Qualitative & Categorical Analysis (qual) ---
-  {
-    nature: 'na',
-    type: 'qual',
+    type: 'distribution',
     method: 'Frequency Tables (Crosstabs)',
     function: 'Count categorical outcomes and inspect how categories co-occur across variables; core descriptive tool for discrete data.',
     sampleN: 'na',
@@ -90,22 +57,11 @@ export const descriptiveData = [
     codeR: "table(df$age_group, df$beverage)\nprop.table(table(df$age_group))\nsummarytools::ctable(df$age_group, df$beverage)",
     codePy: "pd.crosstab(df['age_group'], df['beverage'])\ndf['beverage'].value_counts(normalize=True)",
   },
-  {
-    nature: 'na',
-    type: 'qual',
-    method: 'Basic Text Descriptives (Word Frequencies)',
-    function: 'Extract and count the most common words or phrases (N-grams) to summarize unstructured text data.',
-    sampleN: 'na',
-    sampleR: 'na',
-    example: 'Find the top 10 most frequently used words in customer reviews of a local coffee shop.',
-    codeR: "library(tidytext)\nlibrary(dplyr)\nunnest_tokens(df, word, review_text) |> count(word, sort = TRUE)",
-    codePy: "from collections import Counter\nCounter(' '.join(df['reviews']).split()).most_common(10)",
-  },
 
-  // --- Group 3: Correlation & Association (corr) ---
+  // --- Association: pairwise or multivariable relationships between variables or items ---
   {
     nature: 'non-linear',
-    type: 'corr',
+    type: 'association',
     method: "Cramer's V (Categorical Association)",
     function: 'Quantify the strength of association between two nominal categorical variables on a 0 to 1 scale.',
     sampleN: 'na',
@@ -116,7 +72,7 @@ export const descriptiveData = [
   },
   {
     nature: 'linear',
-    type: 'corr',
+    type: 'association',
     method: 'Correlation Matrix & Heatmap',
     function: 'Measure the strength and direction of linear or monotonic relationships between multiple numeric/ordinal variables.',
     sampleN: 'na',
@@ -127,7 +83,7 @@ export const descriptiveData = [
   },
   {
     nature: 'linear',
-    type: 'corr',
+    type: 'association',
     method: 'Scatter Plot Matrix (Pair Plot)',
     function: 'Visualize distributions and pairwise relationships across multiple continuous variables simultaneously to reveal non-linear patterns.',
     sampleN: 'na',
@@ -138,7 +94,7 @@ export const descriptiveData = [
   },
   {
     nature: 'linear',
-    type: 'corr',
+    type: 'association',
     method: "Cronbach's Alpha (Reliability Analysis)",
     function: 'Measure internal consistency to ensure multiple survey items or metrics reliably measure the same underlying concept.',
     sampleN: 'na',
@@ -149,7 +105,7 @@ export const descriptiveData = [
   },
   {
     nature: 'na',
-    type: 'corr',
+    type: 'association',
     method: 'Association Rule Mining (Apriori)',
     function: 'Discover interesting relations, frequent itemsets, and co-occurrence rules between categorical variables in databases.',
     sampleN: 'na',
@@ -159,10 +115,10 @@ export const descriptiveData = [
     codePy: "from mlxtend.frequent_patterns import apriori, association_rules\nfreq_items = apriori(grocery_encoded, min_support=0.01, use_colnames=True)\nrules = association_rules(freq_items, metric='confidence', min_threshold=0.8)",
   },
 
-  // --- Group 4: Time Series (ts) ---
+  // --- Time: descriptive tools that separate trend, seasonality, and autocorrelation structure ---
   {
     nature: 'na',
-    type: 'ts',
+    type: 'time',
     method: 'Time Series Decomposition (STL) & ACF',
     function: 'Decompose temporal data into underlying trend, seasonal, and residual components; measure self-correlation.',
     sampleN: 'na',
@@ -170,5 +126,29 @@ export const descriptiveData = [
     example: 'Decompose daily household electricity usage to separate the winter heating trend from daily routines.',
     codeR: "decomp <- stl(daily_electricity_ts, s.window='periodic')\nplot(decomp)\nforecast::ggAcf(daily_electricity_ts)",
     codePy: "from statsmodels.tsa.seasonal import seasonal_decompose\nfrom statsmodels.graphics.tsaplots import plot_acf\nres = seasonal_decompose(df['electricity'], model='additive', period=365)\nplot_acf(df['electricity'])",
+  },
+
+  // --- Special: domain-specific descriptive methods that do not fit the general numeric/categorical flow ---
+  {
+    nature: 'na',
+    type: 'special',
+    method: 'Basic Text Descriptives (Word Frequencies)',
+    function: 'Extract and count the most common words or phrases (N-grams) to summarize unstructured text data.',
+    sampleN: 'na',
+    sampleR: 'na',
+    example: 'Find the top 10 most frequently used words in customer reviews of a local coffee shop.',
+    codeR: "library(tidytext)\nlibrary(dplyr)\nunnest_tokens(df, word, review_text) |> count(word, sort = TRUE)",
+    codePy: "from collections import Counter\nCounter(' '.join(df['reviews']).split()).most_common(10)",
+  },
+  {
+    nature: 'na',
+    type: 'special',
+    method: 'Network Descriptive Statistics',
+    function: 'Summarize network topologies including degree distribution, node centrality, and community modularity.',
+    sampleN: 'na',
+    sampleR: 'na',
+    example: 'Find the most socially connected students (hubs) in a high school friendship network.',
+    codeR: "library(igraph)\ndeg <- degree(friend_graph, mode='all')\nbetw <- betweenness(friend_graph)\nplot(friend_graph, vertex.size=deg*2)",
+    codePy: "import networkx as nx\ndeg = dict(nx.degree(friend_graph))\nbetw = nx.betweenness_centrality(friend_graph)\nnx.draw(friend_graph, node_size=[v * 100 for v in deg.values()])",
   }
 ];
